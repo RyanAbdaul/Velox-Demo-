@@ -1,0 +1,2244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Velox — Repair. Delivered.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#0e0e0e;
+    --surface-2:#161616;
+    --surface-3:#1c1c1c;
+    --border:rgba(255,255,255,0.10);
+    --border-strong:rgba(255,255,255,0.18);
+    --accent:#a8e600;
+    --accent-dim:rgba(168,230,0,0.12);
+    --accent-ink:#0a1400;
+    --text:#f5f5f5;
+    --text-secondary:#9aa0a6;
+    --text-tertiary:#6b7076;
+    --radius-sm:10px;
+    --radius-md:16px;
+    --radius-lg:22px;
+    --radius-pill:999px;
+    --shadow-card:0 1px 0 rgba(255,255,255,0.02) inset;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Manrope',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,h4{margin:0;font-weight:800;letter-spacing:-0.02em;}
+  p{margin:0;}
+  button{font-family:inherit;}
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;margin:0;padding:0;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+
+  ::selection{background:var(--accent);color:var(--accent-ink);}
+
+  :focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:6px;
+  }
+
+  /* ---------- Layout shells ---------- */
+  #app{
+    min-height:100vh;
+    padding-bottom:64px;
+  }
+
+  .container{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:700;
+    font-size:15px;
+    border-radius:var(--radius-pill);
+    padding:15px 26px;
+    transition:transform .15s var(--ease), background .15s var(--ease), border-color .15s var(--ease), opacity .15s var(--ease);
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{background:#b8fb00;}
+  .btn-primary:disabled{
+    background:#2a2f1c;
+    color:#5c6350;
+    cursor:not-allowed;
+  }
+  .btn-primary:disabled:hover{background:#2a2f1c;}
+  .btn-secondary{
+    background:transparent;
+    color:var(--text);
+    border:1px solid var(--border-strong);
+  }
+  .btn-secondary:hover{border-color:var(--accent); color:var(--accent);}
+  .btn-dark{
+    background:var(--surface-3);
+    color:var(--text);
+    border:1px solid var(--border-strong);
+  }
+  .btn-dark:hover{border-color:var(--accent);}
+  .btn-block{width:100%;}
+  .btn-sm{padding:10px 18px; font-size:13px;}
+
+  /* ---------- Logo ---------- */
+  .logo{display:inline-flex; align-items:center; gap:10px; cursor:pointer;}
+  .logo-mark{
+    width:30px; height:30px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logo-text{display:flex; flex-direction:column; line-height:1;}
+  .logo-word{font-size:20px; font-weight:800; letter-spacing:0.02em;}
+  .logo-tag{font-size:8px; font-weight:700; letter-spacing:0.18em; color:var(--accent); margin-top:2px;}
+
+  /* ---------- Mode toggle (prototype harness, not product chrome) ---------- */
+  .mode-harness{
+    position:fixed;
+    bottom:18px; left:50%; transform:translateX(-50%);
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:rgba(20,20,20,0.85);
+    backdrop-filter:blur(10px);
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius-pill);
+    padding:6px;
+  }
+  .mode-harness .mh-label{
+    font-size:10px;
+    color:var(--text-tertiary);
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    padding-left:10px;
+    font-weight:700;
+  }
+  .mh-btn{
+    border:none;
+    background:transparent;
+    color:var(--text-secondary);
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:var(--radius-pill);
+    cursor:pointer;
+    transition:background .15s var(--ease), color .15s var(--ease);
+  }
+  .mh-btn.active{background:var(--accent); color:var(--accent-ink);}
+  .mh-btn:not(.active):hover{color:var(--text);}
+
+  /* ---------- Icon helper ---------- */
+  .icon{display:inline-flex; flex-shrink:0;}
+  .icon svg{display:block;}
+
+  /* =====================================================
+     HOMEPAGE
+  ===================================================== */
+  .nav{
+    position:sticky; top:0; z-index:100;
+    background:rgba(0,0,0,0.85);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .nav-links{
+    display:flex; gap:34px;
+    align-items:center;
+  }
+  .nav-links a{
+    font-size:14px; font-weight:600; color:var(--text-secondary);
+    transition:color .15s var(--ease);
+  }
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{display:flex; align-items:center; gap:14px;}
+
+  .hero{
+    padding:96px 32px 80px;
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:56px;
+    align-items:center;
+  }
+  .hero-headline{
+    font-size:52px;
+    line-height:1.08;
+    margin-bottom:22px;
+  }
+  .hero-headline .accent-text{color:var(--accent);}
+  .hero-sub{
+    font-size:17px;
+    color:var(--text-secondary);
+    line-height:1.6;
+    max-width:440px;
+    margin-bottom:34px;
+  }
+  .hero-actions{display:flex; gap:14px;}
+  .hero-art{
+    position:relative;
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    aspect-ratio:4/3.2;
+    background:linear-gradient(160deg,#151a08,#0a0a0a 60%);
+    border:1px solid var(--border);
+  }
+  .hero-art .tech-illustration{
+    position:absolute; inset:0;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .hero-badge{
+    position:absolute; top:18px; left:18px;
+    background:rgba(0,0,0,0.6);
+    border:1px solid var(--border-strong);
+    backdrop-filter:blur(6px);
+    padding:8px 14px;
+    border-radius:var(--radius-pill);
+    font-size:12px; font-weight:700;
+    display:flex; align-items:center; gap:8px;
+  }
+  .hero-badge .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent);}
+
+  .feature-strip{
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    padding:40px 32px;
+  }
+  .feature-strip-inner{
+    max-width:1180px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(4,1fr); gap:24px;
+  }
+  .feature-item{
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    text-align:center;
+  }
+  .feature-icon-badge{
+    width:52px; height:52px;
+    border-radius:50%;
+    border:1px solid var(--border-strong);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--accent);
+  }
+  .feature-item h4{font-size:14px; font-weight:700;}
+  .feature-item span{font-size:12px; color:var(--text-tertiary);}
+
+  .section{
+    max-width:1180px; margin:0 auto;
+    padding:88px 32px;
+  }
+  .section-head{
+    text-align:center;
+    margin-bottom:56px;
+  }
+  .section-head h2{font-size:32px; margin-bottom:12px;}
+  .section-head p{color:var(--text-secondary); font-size:15px;}
+
+  .steps-row{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:20px;
+  }
+  .step-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:26px 22px;
+    position:relative;
+    transition:border-color .15s var(--ease), transform .15s var(--ease);
+  }
+  .step-card:hover{border-color:var(--border-strong); transform:translateY(-2px);}
+  .step-card .step-num{
+    width:34px; height:34px;
+    border-radius:50%;
+    background:var(--accent-dim);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px;
+    margin-bottom:18px;
+  }
+  .step-card h4{font-size:16px; margin-bottom:6px;}
+  .step-card p{font-size:13px; color:var(--text-tertiary); line-height:1.5;}
+  .step-connector{
+    position:absolute; top:35px; left:-20px;
+    width:20px; height:1px; background:var(--border-strong);
+  }
+
+  .why-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:20px;
+  }
+  .why-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:26px 22px;
+    display:flex; flex-direction:column; gap:14px;
+    transition:border-color .15s var(--ease), transform .15s var(--ease);
+  }
+  .why-card:hover{border-color:var(--accent); transform:translateY(-2px);}
+  .why-card .icon{color:var(--accent);}
+  .why-card h4{font-size:15px;}
+  .why-card p{font-size:12.5px; color:var(--text-tertiary); line-height:1.5;}
+
+  .footer{
+    border-top:1px solid var(--border);
+    padding:40px 32px 24px;
+    text-align:center;
+  }
+  .footer p{font-size:12px; color:var(--text-tertiary);}
+
+  @media (max-width:860px){
+    .hero{grid-template-columns:1fr; padding-top:56px;}
+    .hero-headline{font-size:38px;}
+    .feature-strip-inner, .steps-row, .why-grid{grid-template-columns:repeat(2,1fr);}
+    .nav-links{display:none;}
+  }
+
+  /* =====================================================
+     WEB BOOKING FLOW
+  ===================================================== */
+  .booking-page{
+    max-width:1180px; margin:0 auto;
+    padding:48px 32px 100px;
+  }
+  .booking-header{margin-bottom:36px;}
+  .booking-header h1{font-size:30px; margin-bottom:8px;}
+  .booking-header p{color:var(--text-secondary); font-size:14px;}
+
+  .web-tracker{
+    display:flex; align-items:center;
+    margin-bottom:44px;
+    overflow-x:auto;
+    padding-bottom:4px;
+  }
+  .wt-step{
+    display:flex; align-items:center; gap:10px;
+    flex-shrink:0;
+  }
+  .wt-dot{
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800;
+    border:1.5px solid var(--border-strong);
+    color:var(--text-tertiary);
+    background:var(--surface);
+    transition:all .2s var(--ease);
+  }
+  .wt-step.done .wt-dot{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+  .wt-step.active .wt-dot{border-color:var(--accent); color:var(--accent);}
+  .wt-label{font-size:13px; font-weight:700; color:var(--text-tertiary); white-space:nowrap;}
+  .wt-step.active .wt-label{color:var(--text);}
+  .wt-step.done .wt-label{color:var(--text-secondary);}
+  .wt-line{width:48px; height:1.5px; background:var(--border-strong); margin:0 10px; flex-shrink:0;}
+  .wt-line.done{background:var(--accent);}
+
+  .booking-grid{
+    display:grid;
+    grid-template-columns:1fr 360px;
+    gap:32px;
+    align-items:start;
+  }
+  .booking-main{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:36px;
+    min-height:420px;
+    display:flex; flex-direction:column;
+  }
+  .booking-main h3{font-size:20px; margin-bottom:24px;}
+  .booking-main-body{flex:1;}
+  .booking-main-footer{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:32px; padding-top:24px;
+    border-top:1px solid var(--border);
+  }
+
+  .device-grid, .picker-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+  }
+  .device-card{
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:22px 14px;
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    cursor:pointer;
+    transition:border-color .15s var(--ease), background .15s var(--ease), transform .1s var(--ease);
+    color:var(--text-secondary);
+  }
+  .device-card:hover{border-color:var(--border-strong); transform:translateY(-1px);}
+  .device-card.selected{
+    border-color:var(--accent);
+    background:var(--accent-dim);
+    color:var(--text);
+  }
+  .device-card.selected .icon{color:var(--accent);}
+  .device-card span{font-size:13px; font-weight:700;}
+
+  .issue-list, .addr-list, .time-list{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .row-card{
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    display:flex; align-items:center; gap:14px;
+    cursor:pointer;
+    transition:border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .row-card:hover{border-color:var(--border-strong);}
+  .row-card.selected{border-color:var(--accent); background:var(--accent-dim);}
+  .row-card.selected .icon{color:var(--accent);}
+  .row-icon{
+    width:38px; height:38px; border-radius:10px;
+    background:var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-secondary);
+    flex-shrink:0;
+  }
+  .row-card.selected .row-icon{background:var(--accent-dim); color:var(--accent);}
+  .row-text{flex:1;}
+  .row-title{font-size:14.5px; font-weight:700;}
+  .row-sub{font-size:12px; color:var(--text-tertiary); margin-top:2px;}
+  .row-check{color:var(--accent); opacity:0; transition:opacity .15s var(--ease);}
+  .row-card.selected .row-check{opacity:1;}
+  .row-chevron{color:var(--text-tertiary);}
+
+  textarea.desc-input{
+    width:100%;
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-md);
+    color:var(--text);
+    font-family:inherit;
+    font-size:14px;
+    padding:16px;
+    min-height:120px;
+    resize:vertical;
+    line-height:1.6;
+  }
+  textarea.desc-input:focus{border-color:var(--accent); outline:none;}
+  .field-label{font-size:12px; font-weight:700; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px; display:block;}
+  .photo-row{display:flex; gap:10px; margin-top:10px;}
+  .photo-thumb, .photo-add{
+    width:64px; height:64px; border-radius:var(--radius-sm);
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px dashed var(--border-strong);
+    color:var(--text-tertiary);
+    cursor:pointer;
+    background:var(--surface-2);
+    flex-shrink:0;
+    overflow:hidden;
+  }
+  .photo-thumb{border-style:solid; border-color:var(--border); background:linear-gradient(135deg,#2a2a2a,#141414); position:relative;}
+  .photo-thumb svg{color:#555;}
+  .photo-add:hover{border-color:var(--accent); color:var(--accent);}
+
+  .tab-row{display:flex; gap:8px; margin-bottom:20px;}
+  .tab-btn{
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    color:var(--text-secondary);
+    font-weight:700; font-size:13px;
+    padding:10px 20px;
+    border-radius:var(--radius-pill);
+    cursor:pointer;
+    transition:all .15s var(--ease);
+  }
+  .tab-btn.active{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+  .tab-btn:not(.active):hover{border-color:var(--border-strong); color:var(--text);}
+
+  /* ---------- Brand / model picker ---------- */
+  .brand-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+  .brand-card{
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-md);
+    padding:16px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    cursor:pointer;
+    transition:border-color .15s var(--ease), background .15s var(--ease), transform .1s var(--ease);
+    color:var(--text-secondary);
+  }
+  .brand-card:hover{border-color:var(--border-strong); transform:translateY(-1px);}
+  .brand-card.selected{border-color:var(--accent); background:var(--accent-dim); color:var(--text);}
+  .brand-card.selected .brand-avatar{background:var(--accent-dim); color:var(--accent);}
+  .brand-avatar{
+    width:38px; height:38px; border-radius:10px;
+    background:var(--surface-3);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12.5px; letter-spacing:-0.02em;
+  }
+  .brand-card span.brand-label{font-size:12.5px; font-weight:700; text-align:center;}
+  .section-divider-label{
+    font-size:12px; font-weight:700; color:var(--text-tertiary);
+    text-transform:uppercase; letter-spacing:0.06em; margin:24px 0 12px;
+  }
+  .model-search-wrap{position:relative; margin-bottom:12px;}
+  .model-search-icon{position:absolute; left:15px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); display:flex; pointer-events:none;}
+  .model-search-input{
+    width:100%;
+    background:var(--surface-2);
+    border:1.5px solid var(--border);
+    border-radius:var(--radius-pill);
+    color:var(--text);
+    font-family:inherit;
+    font-size:14px;
+    padding:12px 16px 12px 42px;
+  }
+  .model-search-input::placeholder{color:var(--text-tertiary);}
+  .model-search-input:focus{border-color:var(--accent); outline:none;}
+  .model-list{display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:2px;}
+  .model-empty{padding:22px 10px; text-align:center; color:var(--text-tertiary); font-size:13px;}
+  .price-tag-inline{font-size:11.5px; font-weight:700; color:var(--accent);}
+  @media (max-width:640px){ .brand-grid{grid-template-columns:repeat(3,1fr);} }
+
+  .summary-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:26px;
+    position:sticky; top:100px;
+  }
+  .summary-card h4{font-size:13px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-tertiary); margin-bottom:18px;}
+  .summary-device{
+    display:flex; align-items:center; gap:12px;
+    padding-bottom:18px; margin-bottom:18px;
+    border-bottom:1px solid var(--border);
+  }
+  .summary-device-thumb{
+    width:46px; height:46px; border-radius:12px;
+    background:var(--accent-dim); color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .summary-device-name{font-size:14.5px; font-weight:700;}
+  .summary-device-sub{font-size:12px; color:var(--text-tertiary); margin-top:2px;}
+  .summary-rows{display:flex; flex-direction:column; gap:14px; margin-bottom:20px;}
+  .summary-row{display:flex; justify-content:space-between; gap:12px; font-size:13px;}
+  .summary-row-label{color:var(--text-tertiary); flex-shrink:0;}
+  .summary-row-value{color:var(--text); text-align:right; font-weight:600;}
+  .summary-total{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-top:18px; border-top:1px solid var(--border);
+    margin-bottom:22px;
+  }
+  .summary-total-label{font-size:13px; color:var(--text-tertiary);}
+  .summary-total-value{font-size:22px; font-weight:800; color:var(--accent);}
+
+  @media (max-width:900px){
+    .booking-grid{grid-template-columns:1fr;}
+    .summary-card{position:static;}
+    .device-grid, .picker-grid{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* =====================================================
+     SUCCESS / TRACK (web variant)
+  ===================================================== */
+  .web-result{
+    max-width:560px; margin:60px auto; padding:0 32px;
+    text-align:center;
+  }
+  .success-badge{
+    width:96px; height:96px; border-radius:50%;
+    background:var(--accent-dim); border:2px solid var(--accent);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 28px;
+  }
+  .web-result h1{font-size:28px; margin-bottom:10px;}
+  .web-result > p{color:var(--text-secondary); font-size:15px; margin-bottom:32px;}
+
+  .time-pill{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--border-strong);
+    padding:14px 24px; border-radius:var(--radius-pill);
+    font-weight:700; color:var(--accent);
+    margin-bottom:28px;
+  }
+  .tech-card{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:18px 20px;
+    text-align:left; margin-bottom:28px;
+  }
+  .tech-avatar{
+    width:52px; height:52px; border-radius:50%;
+    background:linear-gradient(135deg,#3a3a3a,#181818);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text-secondary); flex-shrink:0;
+    border:1px solid var(--border-strong);
+  }
+  .tech-name{font-size:15px; font-weight:700;}
+  .tech-role{font-size:12px; color:var(--text-tertiary); margin-top:2px;}
+  .tech-rating{display:flex; align-items:center; gap:4px; margin-top:4px; font-size:12px; color:var(--accent); font-weight:700;}
+
+  .track-map{
+    position:relative;
+    height:220px;
+    border-radius:var(--radius-lg);
+    border:1px solid var(--border);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(168,230,0,0.05), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 28px),
+      #0c0c0c;
+    margin-bottom:28px;
+    overflow:hidden;
+  }
+  .track-route{position:absolute; inset:0;}
+  .pin{
+    position:absolute; width:14px; height:14px; border-radius:50% 50% 50% 0;
+    transform:rotate(-45deg); border:2px solid #000;
+  }
+  .pin.start{background:var(--text-secondary); top:65%; left:22%;}
+  .pin.end{background:var(--accent); top:28%; left:70%; box-shadow:0 0 12px var(--accent);}
+
+  .timeline{text-align:left; display:flex; flex-direction:column; margin-bottom:28px;}
+  .tl-item{display:flex; gap:16px; position:relative; padding-bottom:26px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-line{
+    position:absolute; left:9px; top:22px; bottom:0;
+    width:2px; background:var(--border-strong);
+  }
+  .tl-item:last-child .tl-line{display:none;}
+  .tl-item.done .tl-line{background:var(--accent);}
+  .tl-dot{
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid var(--border-strong);
+    background:var(--bg);
+    flex-shrink:0; z-index:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tl-item.done .tl-dot{background:var(--accent); border-color:var(--accent);}
+  .tl-item.active .tl-dot{border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-dim);}
+  .tl-content{padding-top:1px;}
+  .tl-title{font-size:14px; font-weight:700; color:var(--text-tertiary);}
+  .tl-item.done .tl-title, .tl-item.active .tl-title{color:var(--text);}
+  .tl-time{font-size:12px; color:var(--text-tertiary); margin-top:2px;}
+  .result-actions{display:flex; gap:12px; justify-content:center;}
+  .result-actions .btn{flex:1;}
+
+  /* =====================================================
+     MOBILE PROTOTYPE (phone frame)
+  ===================================================== */
+  .mobile-shell{
+    display:flex; flex-direction:column; align-items:center;
+    padding:80px 20px 60px;
+    min-height:100vh;
+  }
+  .mobile-tracker{
+    display:flex; align-items:center; justify-content:center;
+    flex-wrap:wrap; gap:0;
+    margin-bottom:40px;
+    max-width:960px;
+  }
+  .mt-step{display:flex; flex-direction:column; align-items:center; gap:8px; width:110px;}
+  .mt-dot{
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800;
+    border:1.5px solid var(--border-strong);
+    color:var(--text-tertiary);
+    background:var(--surface);
+  }
+  .mt-step.done .mt-dot{background:var(--accent); border-color:var(--accent); color:var(--accent-ink);}
+  .mt-step.active .mt-dot{border-color:var(--accent); color:var(--accent);}
+  .mt-label{font-size:10.5px; font-weight:700; color:var(--text-tertiary); text-align:center;}
+  .mt-step.active .mt-label{color:var(--text);}
+  .mt-step.done .mt-label{color:var(--text-secondary);}
+  .mt-line{height:1.5px; background:var(--border-strong); flex:1; margin-top:13px; min-width:14px;}
+  .mt-line.done{background:var(--accent);}
+  .mt-connector{display:flex; align-items:flex-start; flex:1; min-width:14px; max-width:34px;}
+
+  .phone{
+    width:375px;
+    max-width:92vw;
+    background:#050505;
+    border:10px solid #1a1a1a;
+    border-radius:46px;
+    box-shadow:0 30px 70px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    overflow:hidden;
+    position:relative;
+  }
+  .phone-statusbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px 6px;
+    font-size:14px; font-weight:700;
+    color:var(--text);
+  }
+  .phone-screen{
+    height:720px;
+    max-height:78vh;
+    overflow-y:auto;
+    display:flex; flex-direction:column;
+    padding:8px 22px 22px;
+    scrollbar-width:none;
+  }
+  .phone-screen::-webkit-scrollbar{display:none;}
+  .screen-header{display:flex; align-items:center; gap:14px; margin-bottom:22px; min-height:32px;}
+  .price-pill{
+    margin-left:auto;
+    display:flex; flex-direction:column; align-items:flex-end; gap:1px;
+    background:var(--accent-dim); border:1px solid var(--border);
+    padding:6px 13px;
+    border-radius:var(--radius-pill);
+    white-space:nowrap;
+  }
+  .price-pill .pp-label{font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-tertiary);}
+  .price-pill .pp-value{font-size:13px; font-weight:800; color:var(--accent);}
+  .back-btn{
+    width:32px; height:32px; border-radius:50%;
+    background:var(--surface-2); border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text); cursor:pointer; flex-shrink:0;
+    transition:border-color .15s var(--ease);
+  }
+  .back-btn:hover{border-color:var(--accent); color:var(--accent);}
+  .back-btn.invisible{visibility:hidden;}
+  .screen-title{font-size:19px;}
+  .screen-body{flex:1;}
+  .screen-sub{font-size:13px; color:var(--text-tertiary); margin:-14px 0 18px;}
+
+  .m-device-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:20px;}
+  .m-device-card{
+    background:var(--surface-2); border:1.5px solid var(--border);
+    border-radius:var(--radius-md); padding:18px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    color:var(--text-secondary); cursor:pointer;
+    transition:border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .m-device-card.selected{border-color:var(--accent); background:var(--accent-dim); color:var(--text);}
+  .m-device-card.selected .icon{color:var(--accent);}
+  .m-device-card span{font-size:12.5px; font-weight:700;}
+
+  .m-brand-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px;}
+  .m-brand-card{
+    background:var(--surface-2); border:1.5px solid var(--border);
+    border-radius:var(--radius-md); padding:14px 8px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color:var(--text-secondary); cursor:pointer;
+    transition:border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .m-brand-card.selected{border-color:var(--accent); background:var(--accent-dim); color:var(--text);}
+  .m-brand-card.selected .brand-avatar{background:var(--accent-dim); color:var(--accent);}
+  .m-brand-card span.brand-label{font-size:11.5px; font-weight:700; text-align:center;}
+
+  .m-note{
+    display:flex; align-items:center; gap:8px;
+    font-size:12px; color:var(--text-tertiary);
+    margin-bottom:18px;
+  }
+  .m-note .icon{color:var(--accent);}
+
+  .m-row-list{display:flex; flex-direction:column; gap:9px; margin-bottom:18px;}
+
+  .m-footer{margin-top:auto; padding-top:16px;}
+
+  textarea.m-textarea{
+    width:100%; background:var(--surface-2); border:1.5px solid var(--border);
+    border-radius:var(--radius-md); color:var(--text); font-family:inherit;
+    font-size:13.5px; padding:14px; min-height:110px; resize:none; line-height:1.55;
+  }
+  textarea.m-textarea:focus{border-color:var(--accent); outline:none;}
+
+  .m-success{
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:20px 0;
+  }
+
+  .m-landing{
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:20px 0 4px;
+  }
+  .m-landing-logo{margin-bottom:22px;}
+  .m-landing-illustration{
+    width:88px; height:88px; border-radius:50%;
+    background:var(--accent-dim); border:1.5px solid var(--border-strong); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; margin-bottom:26px;
+  }
+  .m-landing h2{font-size:24px; line-height:1.2; margin-bottom:12px;}
+  .m-landing h2 .accent-text{color:var(--accent);}
+  .m-landing > p{font-size:13.5px; color:var(--text-secondary); line-height:1.55; max-width:280px; margin-bottom:30px;}
+  .m-landing .btn{margin-bottom:12px;}
+  .m-success-icon{
+    width:76px; height:76px; border-radius:50%;
+    background:var(--accent-dim); border:2px solid var(--accent); color:var(--accent);
+    display:flex; align-items:center; justify-content:center; margin-bottom:22px;
+  }
+  .m-success h2{font-size:21px; margin-bottom:8px;}
+  .m-success > p{font-size:13px; color:var(--text-secondary); margin-bottom:22px;}
+
+  .m-time-pill{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--surface-2); border:1px solid var(--border-strong);
+    padding:10px 18px; border-radius:var(--radius-pill);
+    font-weight:700; font-size:13px; color:var(--accent); margin-bottom:20px;
+  }
+
+  .m-tech-card{
+    width:100%; display:flex; align-items:center; gap:12px;
+    background:var(--surface-2); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:14px 16px; margin-bottom:24px; text-align:left;
+  }
+
+  .m-track-header{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+  .m-track-map{
+    height:150px; border-radius:var(--radius-md); border:1px solid var(--border);
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 22px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 22px),
+      #0c0c0c;
+    position:relative; margin-bottom:20px; overflow:hidden;
+  }
+  .m-actions-row{display:flex; gap:10px; margin-top:auto;}
+  .m-actions-row .btn{flex:1;}
+  body{padding-top:env(safe-area-inset-top,0px);}
+  .row-card.urgent.selected{border-color:var(--accent);}
+  .dash{max-width:860px;margin:0 auto;padding:48px 32px 100px;}
+  .dash h1{font-size:28px;margin-bottom:6px;}
+  .dash > p{color:var(--text-secondary);font-size:14px;margin-bottom:28px;}
+  .dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+  .dash-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:20px;}
+  .dash-stat small{display:block;font-size:12px;color:var(--text-tertiary);margin-bottom:8px;}
+  .dash-stat b{font-size:24px;font-weight:800;}
+  .dash-stat.hl b{color:var(--accent);}
+  .dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:26px;}
+  .dash-card h4{font-size:15px;margin-bottom:18px;}
+  .bar-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;font-size:13px;}
+  .bar-row span:first-child{width:60px;color:var(--text-secondary);flex-shrink:0;}
+  .bar-track{flex:1;height:10px;background:var(--surface-3);border-radius:var(--radius-pill);overflow:hidden;}
+  .bar-fill{height:100%;background:var(--accent);border-radius:var(--radius-pill);}
+  .bar-row span:last-child{width:90px;text-align:right;font-weight:700;}
+  .dash-note{font-size:12px;color:var(--text-tertiary);margin-top:16px;line-height:1.6;}
+  @media (max-width:640px){.dash-stats{grid-template-columns:1fr;}}
+  .tg{width:46px;height:26px;border-radius:99px;border:1px solid var(--border-strong);background:var(--surface-3);position:relative;cursor:pointer;padding:0;flex-shrink:0;}
+  .tg i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--text-tertiary);transition:left .15s var(--ease);}
+  .tg.on{background:var(--accent-dim);border-color:var(--accent);} .tg.on i{left:22px;background:var(--accent);}
+  .th{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .th .grow{flex:1;}
+  .t-earn{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 12px;margin-bottom:18px;}
+  .t-earn small{display:block;font-size:10px;color:var(--text-tertiary);margin-bottom:4px;}
+  .t-earn b{font-size:13.5px;font-weight:800;} .t-earn .k b{color:var(--accent);}
+  .tab-row.sm .tab-btn{flex:1;padding:9px 0;font-size:12px;}
+  .tj{background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s var(--ease);}
+  .tj:hover{border-color:var(--border-strong);}
+  .tj-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;}
+  .tj-meta{display:flex;flex-direction:column;gap:5px;margin:10px 0;font-size:11.5px;color:var(--text-secondary);}
+  .tj-meta span{display:flex;align-items:center;gap:6px;}
+  .tj-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .tj-pay{font-size:12.5px;font-weight:800;color:var(--accent);}
+  .tj-btns{display:flex;gap:6px;}
+  .badge{font-size:10px;font-weight:800;background:var(--accent);color:var(--accent-ink);padding:3px 9px;border-radius:99px;white-space:nowrap;}
+  .chip{font-size:11px;font-weight:700;border:1px solid var(--border-strong);padding:4px 10px;border-radius:99px;color:var(--text-secondary);white-space:nowrap;}
+  .t-empty{padding:34px 12px;text-align:center;color:var(--text-tertiary);font-size:13px;line-height:1.6;}
+  .t-block{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:14px;}
+  .t-block .field-label{margin-bottom:6px;}
+  .t-block p{font-size:13px;color:var(--text-secondary);line-height:1.5;}
+  .t-cust{display:flex;align-items:center;gap:12px;}
+  .t-cust .grow{flex:1;}
+  .t-circ{width:38px;height:38px;border-radius:50%;padding:0;flex-shrink:0;}
+  .fld{width:100%;background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--text);font-family:inherit;font-size:14px;padding:13px 14px;margin-bottom:14px;}
+  .fld:focus{border-color:var(--accent);outline:none;} .fld::placeholder{color:var(--text-tertiary);}
+  .err{color:#ff7a6b;font-size:12px;margin:-4px 0 12px;line-height:1.4;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;} .chips .tab-btn{padding:8px 14px;font-size:12px;}
+  .pbar{display:flex;align-items:center;gap:10px;flex:1;font-size:11px;color:var(--text-tertiary);font-weight:700;white-space:nowrap;}
+  .pbar div{flex:1;height:4px;background:var(--surface-3);border-radius:99px;overflow:hidden;} .pbar i{display:block;height:100%;background:var(--accent);}
+  .doc-state{font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap;} .doc-state.todo{color:var(--text-secondary);border:1px solid var(--border-strong);padding:4px 10px;border-radius:99px;}
+</style>
+</head>
+<body>
+
+<div class="mode-harness" role="tablist" aria-label="Prototype view switcher">
+  <span class="mh-label">Prototype</span>
+  <button class="mh-btn" id="mh-web" role="tab">Website</button>
+  <button class="mh-btn" id="mh-mobile" role="tab">Mobile App</button>
+  <button class="mh-btn" id="mh-tech" role="tab">Technician App</button>
+</div>
+
+<div id="app"></div>
+
+<script>
+/* =====================================================
+   VELOX PROTOTYPE — vanilla JS, single state tree, no framework
+   This is a click-through demo: all data is hardcoded, nothing
+   persists past a refresh, and every button routes to a real
+   next screen in the flow below.
+===================================================== */
+
+/* ---------------- Icon set (inline SVG, stroke-based) ---------------- */
+const ICON_PATHS = {
+  phone: '<rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>',
+  laptop: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M1 20h22l-2-4H3l-2 4z"/>',
+  tablet: '<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/>',
+  watch: '<rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 7V4h6v3M9 17v3h6v-3"/>',
+  gamepad: '<path d="M6 11h4M8 9v4"/><circle cx="16" cy="10" r="1"/><circle cx="18.5" cy="12.5" r="1"/><path d="M7 6h10a5 5 0 0 1 5 6.5l-.5 1.5a2.5 2.5 0 0 1-4.3 1.2L15.5 13h-7l-1.7 2.2A2.5 2.5 0 0 1 2.5 14L2 12.5A5 5 0 0 1 7 6z"/>',
+  accessory: '<path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="13" width="5" height="7" rx="1.5"/><rect x="17" y="13" width="5" height="7" rx="1.5"/>',
+  screen: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3l3 6-2 2 4 6"/>',
+  battery: '<rect x="2" y="8" width="17" height="8" rx="1.5"/><line x1="21" y1="10.5" x2="21" y2="13.5"/><rect x="4.5" y="10" width="6" height="4" fill="currentColor" stroke="none"/>',
+  plug: '<path d="M9 2v6M15 2v6M6 8h12v4a6 6 0 0 1-12 0V8z"/><path d="M12 18v4"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3.3"/>',
+  water: '<path d="M12 2s-6.5 7.5-6.5 12A6.5 6.5 0 0 0 12 20.5 6.5 6.5 0 0 0 18.5 14C18.5 9.5 12 2 12 2z"/>',
+  dots: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
+  search: '<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  pin: '<path d="M12 22s7-7.4 7-12.5A7 7 0 0 0 5 9.5C5 14.6 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.4"/>',
+  home: '<path d="M4 11.5L12 4l8 7.5V20a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8.5z"/>',
+  office: '<rect x="4" y="3" width="10" height="18"/><rect x="14" y="9" width="6" height="12"/><line x1="7" y1="7" x2="7" y2="7.01"/><line x1="11" y1="7" x2="11" y2="7.01"/><line x1="7" y1="11" x2="7" y2="11.01"/><line x1="11" y1="11" x2="11" y2="11.01"/>',
+  plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  chevronRight: '<polyline points="9 6 15 12 9 18"/>',
+  chevronLeft: '<polyline points="15 6 9 12 15 18"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  checkCircle: '<circle cx="12" cy="12" r="10"/><polyline points="8 12.5 11 15.5 16 9"/>',
+  arrowLeft: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  star: '<polygon points="12 2 15.1 8.6 22 9.6 17 14.6 18.2 21.5 12 18.2 5.8 21.5 7 14.6 2 9.6 8.9 8.6"/>',
+  call: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.7a2 2 0 0 1-.4 2.1L8 9.9a16 16 0 0 0 6 6l1.4-1.4a2 2 0 0 1 2.1-.4c.9.3 1.8.5 2.7.6a2 2 0 0 1 1.8 2.2z"/>',
+  chat: '<path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
+  truck: '<rect x="1" y="7" width="14" height="10"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/>',
+  shieldCheck: '<path d="M12 2l8 3v6c0 5-3.4 8.7-8 11-4.6-2.3-8-6-8-11V5l8-3z"/><polyline points="8.5 12 11 14.5 15.5 9.5"/>',
+  award: '<circle cx="12" cy="8" r="5.5"/><path d="M8.5 13 7 21l5-2.5L17 21l-1.5-8"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2.6-.6-.6-2.6 2.8-2.8z"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>',
+};
+
+function icon(name, size = 20, extraAttrs = ''){
+  const path = ICON_PATHS[name] || '';
+  return `<span class="icon" aria-hidden="true"><svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" ${extraAttrs}>${path}</svg></span>`;
+}
+
+function logoMark(size = 30){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 30 30" fill="none">
+    <path d="M2 4L13 26L17 17L28 4H21L13.5 15.5L9 4H2Z" fill="white"/>
+    <path d="M17 17L21 4H28L17 26V17Z" fill="#a8e600"/>
+  </svg>`;
+}
+
+/* ---------------- Hardcoded demo data ---------------- */
+const DEVICES = [
+  { id:'phone', label:'Phone', icon:'phone' },
+  { id:'laptop', label:'Laptop', icon:'laptop' },
+  { id:'tablet', label:'Tablet', icon:'tablet' },
+  { id:'watch', label:'Smart Watch', icon:'watch' },
+  { id:'console', label:'Gaming Console', icon:'gamepad' },
+  { id:'accessories', label:'Accessories', icon:'accessory' },
+];
+
+const ISSUES = [
+  { id:'screen', label:'Screen', icon:'screen' },
+  { id:'battery', label:'Battery', icon:'battery' },
+  { id:'charging', label:'Charging', icon:'plug' },
+  { id:'camera', label:'Camera', icon:'camera' },
+  { id:'water', label:'Water Damage', icon:'water' },
+  { id:'other', label:'Other', icon:'dots' },
+];
+
+const LOCATIONS = [
+  { id:'current', label:'Use Current Location', sub:'Cairo, Egypt', icon:'pin' },
+  { id:'home', label:'Home', sub:'Saved Address', icon:'home' },
+  { id:'office', label:'Office', sub:'Saved Address', icon:'office' },
+];
+
+const TIME_SLOTS = ['09:00 AM','11:00 AM','01:00 PM','03:00 PM','05:00 PM'];
+
+const DEVICE_NAMES = {
+  phone:'iPhone 15', laptop:'MacBook Pro', tablet:'iPad Air',
+  watch:'Apple Watch', console:'PS5 Console', accessories:'AirPods Pro',
+};
+const ISSUE_NAMES = {
+  screen:'Screen Repair', battery:'Battery Replacement', charging:'Charging Port Repair',
+  camera:'Camera Repair', water:'Water Damage Repair', other:'General Repair',
+};
+
+const TECHNICIAN = { name:'Ahmed Salah', rating:'4.9' };
+const ADDRESS_FULL = '123 Al Maadi St., Maadi, Cairo.';
+
+/* ---------------- Brand / model picker data ---------------- */
+// Brand list shown depends on the device chosen in step 1. Phone brands cover
+// the mix most commonly seen in the Egyptian market.
+const BRANDS_BY_DEVICE = {
+  phone: ['samsung','apple','xiaomi','huawei','oppo','infinix','realme','vivo','honor','tecno','nokia','itel'],
+  laptop: ['apple','dell','hp','lenovo','asus','acer'],
+  tablet: ['apple','samsung','huawei','lenovo','xiaomi'],
+  watch: ['apple','samsung','huawei','xiaomi','amazfit'],
+  console: ['sony','microsoft','nintendo'],
+  accessories: ['apple','samsung','jbl','anker','generic'],
+};
+
+const BRAND_LABELS = {
+  samsung:'Samsung', apple:'Apple', xiaomi:'Xiaomi', huawei:'Huawei', oppo:'Oppo',
+  infinix:'Infinix', realme:'Realme', vivo:'Vivo', honor:'Honor', tecno:'Tecno',
+  nokia:'Nokia', itel:'itel', dell:'Dell', hp:'HP', lenovo:'Lenovo', asus:'Asus',
+  acer:'Acer', sony:'Sony', microsoft:'Microsoft', nintendo:'Nintendo', jbl:'JBL',
+  anker:'Anker', generic:'Other / Generic', amazfit:'Amazfit',
+};
+
+// Only phones get a searchable exact-model list, since that's the noisiest
+// category in real life (dozens of near-identical model names per brand).
+const MODELS_BY_BRAND = {
+  samsung: ['Galaxy S24 Ultra','Galaxy S24','Galaxy S23 Ultra','Galaxy S23','Galaxy S23 FE','Galaxy A55','Galaxy A54','Galaxy A34','Galaxy A24','Galaxy A05','Galaxy Z Fold5','Galaxy Z Flip5','Galaxy Note 20 Ultra','Galaxy M14'],
+  apple: ['iPhone 15 Pro Max','iPhone 15 Pro','iPhone 15','iPhone 14 Pro Max','iPhone 14 Pro','iPhone 14','iPhone 13 Pro','iPhone 13','iPhone 12','iPhone 11','iPhone SE (2022)','iPhone XR'],
+  xiaomi: ['Xiaomi 13T Pro','Xiaomi 13','Redmi Note 13 Pro','Redmi Note 12','Redmi 12','Redmi 10C','POCO X5 Pro','POCO M5'],
+  huawei: ['Huawei P60 Pro','Huawei P50 Pro','Huawei Mate 50 Pro','Huawei Nova 11','Huawei Nova 10','Huawei Y9 Prime','Huawei Y7a'],
+  oppo: ['Oppo Find X6','Oppo Reno 11','Oppo Reno 10','Oppo A98','Oppo A78','Oppo A58','Oppo A18'],
+  infinix: ['Infinix Zero 30','Infinix Note 30','Infinix Note 12','Infinix Hot 40','Infinix Hot 30','Infinix Smart 8','Infinix GT 10 Pro'],
+  realme: ['Realme 11 Pro','Realme GT Neo','Realme 10','Realme Narzo 60','Realme C55'],
+  vivo: ['Vivo V29','Vivo V27','Vivo Y36','Vivo Y17s','Vivo Y02'],
+  honor: ['Honor Magic5 Lite','Honor 90','Honor X9b','Honor X8'],
+  tecno: ['Tecno Phantom X2','Tecno Camon 20','Tecno Pova 5','Tecno Spark 10'],
+  nokia: ['Nokia XR21','Nokia G42','Nokia C32','Nokia 105 (2023)'],
+  itel: ['itel S23','itel A60','itel P40'],
+};
+
+// Base callout-visit price per device category, before brand/issue adjustments.
+const DEVICE_BASE_PRICE = { phone:250, laptop:450, tablet:350, watch:200, console:320, accessories:150 };
+
+// Brand affects part cost and turnaround, so it nudges the price up or down.
+const BRAND_PRICE_MULTIPLIER = {
+  samsung:1.15, apple:1.4, xiaomi:0.9, huawei:1.05, oppo:0.9, infinix:0.75,
+  realme:0.85, vivo:0.85, honor:0.95, tecno:0.75, nokia:0.8, itel:0.65,
+  dell:1.05, hp:1.0, lenovo:0.95, asus:1.0, acer:0.9,
+  sony:1.1, microsoft:1.1, nintendo:1.0,
+  jbl:1.0, anker:0.9, generic:0.85, amazfit:0.85,
+};
+
+const ISSUE_PRICE_ADDON = { screen:150, battery:80, charging:60, camera:100, water:200, other:50 };
+
+function defaultBrandForDevice(device){
+  const list = BRANDS_BY_DEVICE[device] || [];
+  return list[0] || 'generic';
+}
+function defaultModelForBrand(brand){
+  const list = MODELS_BY_BRAND[brand];
+  return list ? list[0] : '';
+}
+// A rough "flagship" surcharge — Pro/Ultra/Max/foldables typically mean
+// pricier screens and parts.
+function isFlagshipModel(model){
+  return /pro|ultra|max|fold|flip/i.test(model || '');
+}
+function calcTotalPrice(){
+  const base = DEVICE_BASE_PRICE[state.booking.device] || 250;
+  const brandMult = BRAND_PRICE_MULTIPLIER[state.booking.brand] || 1;
+  const issueAddon = ISSUE_PRICE_ADDON[state.booking.issue] || 0;
+  let total = base * brandMult + issueAddon;
+  if (state.booking.device === 'phone' && isFlagshipModel(state.booking.model)) total += 50;
+  total = Math.round(total / 5) * 5;
+  return total + (state.booking.urgent ? URGENT_FEE : 0);
+}
+const URGENT_FEE = 100;
+function loyaltyPoints(){ return Math.floor(calcTotalPrice() / 10); }
+function dayLabel(){ return { today:'Today', tomorrow:'Tomorrow', schedule:'Mon, 12 Oct' }[state.booking.timeTab]; }
+function whenLabel(){ return state.booking.urgent ? 'ASAP, within 60 min' : `${dayLabel()}, ${state.booking.time}`; }
+function breakdownRows(){
+  const u = state.booking.urgent;
+  const row = (l, v, c='') => `<div class="summary-row"><span class="summary-row-label">${l}</span><span class="summary-row-value" ${c ? `style="color:${c}"` : ''}>${v}</span></div>`;
+  return row('Repair', `EGP ${calcTotalPrice() - (u ? URGENT_FEE : 0)}`) + (u ? row('Hurry-up fee', `EGP ${URGENT_FEE}`) : '') + row('Points earned', `+${loyaltyPoints()} pts`, 'var(--accent)');
+}
+function priceLabel(){
+  return `EGP ${calcTotalPrice()}`;
+}
+function pricePill(){
+  return `<div class="price-pill"><span class="pp-label">Total</span><span class="pp-value">${priceLabel()}</span></div>`;
+}
+
+/* ---------------- Step sequencing ----------------
+   The Model step only exists for phones (that's the only category with a
+   searchable exact-model list), so the booking flow is built as an ordered
+   list of step ids that's recomputed from the current device — inserting or
+   removing 'model' automatically shifts every step after it. */
+function getWebStepIds(){
+  const ids = ['device','brand'];
+  if (state.booking.device === 'phone') ids.push('model');
+  ids.push('issue','details','location','time','confirm');
+  return ids;
+}
+const WEB_STEP_LABEL_MAP = { device:'Device', brand:'Brand', model:'Model', issue:'Issue', details:'Details', location:'Location', time:'Time', confirm:'Confirm' };
+function getWebStepLabels(){
+  return getWebStepIds().map(id => WEB_STEP_LABEL_MAP[id]);
+}
+function getMobileStepIds(){
+  return getWebStepIds(); // same underlying sequence (device..confirm)
+}
+const MOBILE_STEP_LABEL_MAP = { device:'Choose Device', brand:'Choose Brand', model:'Choose Model', issue:'Select Issue', details:'Describe Issue', location:'Choose Location', time:'Choose Time', confirm:'Review & Confirm' };
+function getMobileStepLabels(){
+  return [...getMobileStepIds().map(id => MOBILE_STEP_LABEL_MAP[id]), 'Booking Successful'];
+}
+
+/* ---------------- State ---------------- */
+const state = {
+  mode: 'web',              // 'web' | 'mobile'
+  web: { view: 'home' },    // home | booking | success | track
+  webStep: 1,               // 1..7 within booking
+  mobileStep: 0,            // 0 = landing, 1..9 (8 = success, 9 = track)
+  booking: {
+    device: 'phone',
+    brand: 'samsung',
+    model: defaultModelForBrand('samsung'),
+    modelSearch: '',
+    issue: 'screen',
+    description: 'My screen is cracked and the touch is not working properly.',
+    location: 'current',
+    timeTab: 'today',
+    time: '05:00 PM',
+    urgent: false,
+  },
+};
+
+/* ---------------- Helpers ---------------- */
+function bookingTitle(){
+  return `${deviceDisplayName()} ${ISSUE_NAMES[state.booking.issue]}`;
+}
+function deviceDisplayName(){
+  const brandLabel = BRAND_LABELS[state.booking.brand] || '';
+  if (state.booking.device === 'phone') {
+    return state.booking.model ? `${brandLabel} ${state.booking.model}` : brandLabel;
+  }
+  const deviceLabel = (DEVICES.find(d => d.id === state.booking.device) || {}).label || '';
+  return `${brandLabel} ${deviceLabel}`.trim();
+}
+function selectedLocation(){
+  return LOCATIONS.find(l => l.id === state.booking.location);
+}
+function statusBar(){
+  return `<div class="phone-statusbar">
+    <span>9:41</span>
+    <span style="display:flex;gap:5px;align-items:center;">
+      ${icon('checkCircle', 14)}
+    </span>
+  </div>`;
+}
+
+/* ================= RENDER: ROOT ================= */
+function render(){
+  const app = document.getElementById('app');
+  document.getElementById('mh-web').classList.toggle('active', state.mode === 'web');
+  document.getElementById('mh-mobile').classList.toggle('active', state.mode === 'mobile');
+  document.getElementById('mh-tech').classList.toggle('active', state.mode === 'tech');
+
+  if (state.mode === 'web') {
+    if (state.web.view === 'home') app.innerHTML = renderHomepage();
+    else if (state.web.view === 'booking') app.innerHTML = renderWebBooking();
+    else if (state.web.view === 'success') app.innerHTML = renderWebSuccess();
+    else if (state.web.view === 'track') app.innerHTML = renderWebTrack();
+    else if (state.web.view === 'partner') app.innerHTML = renderWebPartner();
+    else if (state.web.view === 'signup') app.innerHTML = renderWebSignup();
+  } else if (state.mode === 'tech') {
+    app.innerHTML = renderTechShell();
+  } else {
+    app.innerHTML = renderMobileShell();
+  }
+}
+
+// Scroll to top only for real page/view changes (home, booking start, success, track,
+// switching Website/Mobile App mode) — never on in-page selections like picking a
+// device, issue, address, or time slot, and never on back navigation.
+function scrollToTop(){
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+/* ================= HOMEPAGE ================= */
+function renderHomepage(){
+  return `
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo" data-action="go-home">
+        ${logoMark()}
+        <div class="logo-text">
+          <span class="logo-word">VELOX</span>
+          <span class="logo-tag">REPAIR. DELIVERED.</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#top" data-action="go-home">Home</a>
+        <a href="#services">Services</a>
+        <a href="#how">How It Works</a>
+        <a href="#why">Why Velox</a>
+        <a href="#" data-action="go-partner">For Technicians</a>
+        <a href="#footer">Contact</a>
+      </div>
+      <div class="nav-cta">
+        <button class="btn btn-primary btn-sm" data-action="start-booking">Book Now</button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div>
+      <h1 class="hero-headline">Expert repairs.<br>Done at <span class="accent-text">your location</span>.</h1>
+      <p class="hero-sub">We come to you, repair your device on-site and on time. No waiting, no repair shops, no hassle.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" data-action="start-booking">Book Now</button>
+        <button class="btn btn-secondary" data-action="go-track">Track Visit</button>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="hero-badge"><span class="dot"></span> Technician on the way</div>
+      <div class="tech-illustration">${heroIllustration()}</div>
+    </div>
+  </header>
+
+  <section class="feature-strip" id="services">
+    <div class="feature-strip-inner">
+      ${featureItem('truck','We Come To You','At your location')}
+      ${featureItem('shieldCheck','Certified Experts','Trusted professionals')}
+      ${featureItem('clock','On-Time Always','Respecting your time')}
+      ${featureItem('award','Warranty Included','Peace of mind')}
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head">
+      <h2>How It Works</h2>
+      <p>Four steps between a broken device and a fixed one.</p>
+    </div>
+    <div class="steps-row">
+      ${howStep('1','Book','Choose your device, issue and time.')}
+      ${howStep('2','We Come','Our expert comes to your location.')}
+      ${howStep('3','We Repair','We repair your device on the spot.')}
+      ${howStep('4','Done','Your device is ready to use.')}
+    </div>
+  </section>
+
+  <section class="section" id="why">
+    <div class="section-head">
+      <h2>Why Velox?</h2>
+      <p>Reliable, on-site repairs backed by real guarantees.</p>
+    </div>
+    <div class="why-grid">
+      ${whyCard('pin','On-Site Repair','We fix it at your location.')}
+      ${whyCard('shieldCheck','Trusted Experts','Skilled & certified technicians.')}
+      ${whyCard('clock','On-Time Service','We value your time.')}
+      ${whyCard('award','Warranty Included','We stand behind our work.')}
+    </div>
+  </section>
+
+  <footer class="footer" id="footer">
+    <p>&copy; 2026 Velox Repair. This is a click-through prototype for internal review — no real bookings are made.</p>
+  </footer>
+  `;
+}
+
+function heroIllustration(){
+  return `<svg width="100%" height="80%" viewBox="0 0 400 260" preserveAspectRatio="xMidYMax meet">
+    <rect x="40" y="60" width="320" height="200" rx="14" fill="#0a0a0a" stroke="rgba(255,255,255,0.08)"/>
+    <circle cx="200" cy="40" r="26" fill="#161616" stroke="rgba(168,230,0,0.4)"/>
+    <path d="M190 40l7 7 14-14" stroke="#a8e600" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="160" y="120" width="80" height="120" rx="10" fill="#151515" stroke="rgba(255,255,255,0.15)"/>
+    <line x1="188" y1="228" x2="212" y2="228" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    <path d="M170 150l14 24-8 8 16 24" stroke="#a8e600" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+  </svg>`;
+}
+function featureItem(iconName, title, sub){
+  return `<div class="feature-item">
+    <div class="feature-icon-badge">${icon(iconName, 22)}</div>
+    <h4>${title}</h4>
+    <span>${sub}</span>
+  </div>`;
+}
+function howStep(num, title, desc){
+  return `<div class="step-card"><div class="step-num">${num}</div><h4>${title}</h4><p>${desc}</p></div>`;
+}
+function whyCard(iconName, title, desc){
+  return `<div class="why-card">${icon(iconName, 24)}<h4>${title}</h4><p>${desc}</p></div>`;
+}
+
+/* ================= WEB BOOKING FLOW ================= */
+function renderWebBooking(){
+  return `
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="logo" data-action="go-home">
+        ${logoMark()}
+        <div class="logo-text">
+          <span class="logo-word">VELOX</span>
+          <span class="logo-tag">REPAIR. DELIVERED.</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#" data-action="go-home">Home</a>
+      </div>
+      <div class="nav-cta">
+        <button class="btn btn-dark btn-sm" data-action="go-home">Exit Booking</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="booking-page">
+    <div class="booking-header">
+      <h1>Book On-Site Repair</h1>
+      <p>We come to you and repair your device on the spot.</p>
+    </div>
+
+    ${webTracker()}
+
+    <div class="booking-grid">
+      <div class="booking-main">
+        ${webStepBody()}
+      </div>
+      ${summarySidebar()}
+    </div>
+  </div>
+  `;
+}
+
+function webTracker(){
+  const labels = getWebStepLabels();
+  return `<div class="web-tracker">
+    ${labels.map((label, i) => {
+      const stepNum = i + 1;
+      const cls = stepNum < state.webStep ? 'done' : stepNum === state.webStep ? 'active' : '';
+      const dotContent = stepNum < state.webStep ? icon('check', 13) : stepNum;
+      const line = i < labels.length - 1 ? `<div class="wt-line ${stepNum < state.webStep ? 'done' : ''}"></div>` : '';
+      return `<div class="wt-step ${cls}">
+        <div class="wt-dot">${dotContent}</div>
+        <span class="wt-label">${label}</span>
+      </div>${line}`;
+    }).join('')}
+  </div>`;
+}
+
+function webStepBody(){
+  const ids = getWebStepIds();
+  const id = ids[state.webStep - 1];
+  switch(id){
+    case 'device': return stepDeviceBody(false);
+    case 'brand': return stepBrandBody(false);
+    case 'model': return stepModelBody(false);
+    case 'issue': return stepIssueBody(false);
+    case 'details': return stepDetailsBody(false);
+    case 'location': return stepLocationBody(false);
+    case 'time': return stepTimeBody(false);
+    case 'confirm': return stepConfirmBody(false);
+    default: return '';
+  }
+}
+
+function stepDeviceBody(isMobile){
+  const gridClass = isMobile ? 'm-device-grid' : 'device-grid';
+  const cardClass = isMobile ? 'm-device-card' : 'device-card';
+  const cards = DEVICES.map(d => `
+    <div class="${cardClass} ${state.booking.device === d.id ? 'selected' : ''}"
+         data-action="select-device" data-value="${d.id}" tabindex="0" role="button"
+         aria-pressed="${state.booking.device === d.id}">
+      ${icon(d.icon, isMobile ? 26 : 28)}
+      <span>${d.label}</span>
+    </div>`).join('');
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">What do you need repaired?</h2>
+      <div class="screen-body">
+        <div class="${gridClass}">${cards}</div>
+        <div class="m-note">${icon('pin', 15)} On-site repair at your location</div>
+      </div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>What do you need repaired?</h3>
+    <div class="booking-main-body">
+      <div class="${gridClass}">${cards}</div>
+    </div>
+    ${footerNav('go-home', true)}`;
+}
+
+function stepBrandBody(isMobile){
+  const isPhone = state.booking.device === 'phone';
+  const brandIds = BRANDS_BY_DEVICE[state.booking.device] || [];
+  const gridClass = isMobile ? 'm-brand-grid' : 'brand-grid';
+  const cardClass = isMobile ? 'm-brand-card' : 'brand-card';
+  const brandCards = brandIds.map(id => {
+    const label = BRAND_LABELS[id];
+    const initials = label.replace('Other / ', '').slice(0, 2).toUpperCase();
+    return `
+    <div class="${cardClass} ${state.booking.brand === id ? 'selected' : ''}"
+         data-action="select-brand" data-value="${id}" tabindex="0" role="button"
+         aria-pressed="${state.booking.brand === id}">
+      <div class="brand-avatar">${initials}</div>
+      <span class="brand-label">${label}</span>
+    </div>`;
+  }).join('');
+
+  const body = `<div class="${gridClass}">${brandCards}</div>`;
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">${isPhone ? "What's the phone brand?" : 'Which brand?'}</h2>
+      <div class="screen-body">${body}</div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>${isPhone ? "What's the phone brand?" : 'Which brand?'}</h3>
+    <div class="booking-main-body">${body}</div>
+    ${footerNav('web-back', true)}`;
+}
+
+// Dedicated model/version step — phone-only. Kept separate from brand
+// selection so the brand grid (a visual pick) and the model search (a text
+// lookup) aren't competing for attention on the same screen.
+function stepModelBody(isMobile){
+  const brandLabel = BRAND_LABELS[state.booking.brand] || '';
+  const allModels = MODELS_BY_BRAND[state.booking.brand] || [];
+  const q = state.booking.modelSearch.trim().toLowerCase();
+  const filtered = q ? allModels.filter(m => m.toLowerCase().includes(q)) : allModels;
+  const modelRows = filtered.map(m => `
+    <div class="row-card ${state.booking.model === m ? 'selected' : ''}"
+         data-action="select-model" data-value="${m}" tabindex="0" role="button"
+         aria-pressed="${state.booking.model === m}" style="justify-content:space-between;">
+      <div class="row-title">${m}</div>
+      <span class="row-check" style="opacity:${state.booking.model === m ? 1 : 0}">${icon('check', 16)}</span>
+    </div>`).join('');
+  const body = `
+    <div class="model-search-wrap">
+      <span class="model-search-icon">${icon('search', 16)}</span>
+      <input class="model-search-input" type="text" data-action="update-model-search"
+             placeholder="Search ${brandLabel} models…" value="${state.booking.modelSearch}">
+    </div>
+    <div class="model-list">
+      ${modelRows || `<div class="model-empty">No model matches "${state.booking.modelSearch}"</div>`}
+    </div>`;
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">Which ${brandLabel} exactly?</h2>
+      <div class="screen-body">${body}</div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>Which ${brandLabel} exactly?</h3>
+    <div class="booking-main-body">${body}</div>
+    ${footerNav('web-back', true)}`;
+}
+
+function stepIssueBody(isMobile){
+  const rows = ISSUES.map(i => `
+    <div class="row-card ${state.booking.issue === i.id ? 'selected' : ''}"
+         data-action="select-issue" data-value="${i.id}" tabindex="0" role="button"
+         aria-pressed="${state.booking.issue === i.id}">
+      <div class="row-icon">${icon(i.icon, 18)}</div>
+      <div class="row-text"><div class="row-title">${i.label}</div></div>
+      <span class="row-check">${icon('check', 16)}</span>
+      ${isMobile ? `<span class="row-chevron">${icon('chevronRight', 16)}</span>` : ''}
+    </div>`).join('');
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">What's the issue?</h2>
+      <div class="screen-body">
+        <div class="m-row-list">${rows}</div>
+      </div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>What's the issue?</h3>
+    <div class="booking-main-body">
+      <div class="issue-list">${rows}</div>
+    </div>
+    ${footerNav('web-back', true)}`;
+}
+
+function stepDetailsBody(isMobile){
+  const ta = isMobile ? 'm-textarea' : 'desc-input';
+  const body = `
+    <label class="field-label">Describe your issue</label>
+    <textarea class="${ta}" data-action="update-description" placeholder="Please describe the issue in detail">${state.booking.description}</textarea>
+    <label class="field-label" style="margin-top:20px;">Add Photos (optional)</label>
+    <div class="photo-row">
+      <div class="photo-thumb">${icon('screen', 22)}</div>
+      <div class="photo-add" data-action="noop-photo" role="button" tabindex="0">${icon('plus', 20)}</div>
+    </div>`;
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">Tell us more</h2>
+      <div class="screen-body">${body}</div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>Tell us more</h3>
+    <div class="booking-main-body">${body}</div>
+    ${footerNav('web-back', true)}`;
+}
+
+function stepLocationBody(isMobile){
+  const rows = LOCATIONS.map(l => `
+    <div class="row-card ${state.booking.location === l.id ? 'selected' : ''}"
+         data-action="select-location" data-value="${l.id}" tabindex="0" role="button"
+         aria-pressed="${state.booking.location === l.id}">
+      <div class="row-icon">${icon(l.icon, 18)}</div>
+      <div class="row-text">
+        <div class="row-title">${l.label}</div>
+        <div class="row-sub">${l.sub}</div>
+      </div>
+      <span class="row-check">${icon('check', 16)}</span>
+    </div>`).join('');
+  const addRow = `
+    <div class="row-card" data-action="noop-address" tabindex="0" role="button">
+      <div class="row-icon">${icon('plus', 18)}</div>
+      <div class="row-text"><div class="row-title">Add New Address</div></div>
+    </div>`;
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">Where should we come?</h2>
+      <div class="screen-body">
+        <div class="m-row-list">${rows}${addRow}</div>
+      </div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>Where should we come?</h3>
+    <div class="booking-main-body">
+      <div class="addr-list">${rows}${addRow}</div>
+    </div>
+    ${footerNav('web-back', true)}`;
+}
+
+function stepTimeBody(isMobile){
+  const tabs = ['today','tomorrow','schedule'];
+  const tabLabels = { today:'Today', tomorrow:'Tomorrow', schedule:'Schedule' };
+  const tabRow = `<div class="tab-row">
+    ${tabs.map(t => `<button class="tab-btn ${state.booking.timeTab === t ? 'active' : ''}" data-action="select-time-tab" data-value="${t}">${tabLabels[t]}</button>`).join('')}
+  </div>`;
+  const urgentRow = `<div class="row-card urgent ${state.booking.urgent ? 'selected' : ''}" data-action="toggle-urgent" tabindex="0" role="button" aria-pressed="${state.booking.urgent}" style="margin-bottom:18px;">
+    <div class="row-icon">${icon('clock',18)}</div>
+    <div class="row-text"><div class="row-title">Hurry-up Service</div><div class="row-sub">Technician within 60 min · +EGP ${URGENT_FEE}</div></div>
+    <span class="row-check">${icon('check',16)}</span></div>`;
+  const slots = TIME_SLOTS.map(t => `
+    <div class="row-card ${state.booking.time === t ? 'selected' : ''}"
+         data-action="select-time" data-value="${t}" tabindex="0" role="button"
+         aria-pressed="${state.booking.time === t}" style="justify-content:space-between;">
+      <div class="row-title">${t}</div>
+      <span class="row-check" style="opacity:${state.booking.time === t ? 1 : 0}">${icon('check', 16)}</span>
+    </div>`).join('');
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">Choose a visit time</h2>
+      <div class="screen-body">
+        ${urgentRow}${tabRow}
+        <div class="m-row-list">${slots}</div>
+      </div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="mobile-next">Next</button>
+      </div>`;
+  }
+  return `
+    <h3>Choose a visit time</h3>
+    <div class="booking-main-body">
+      ${urgentRow}${tabRow}
+      <div class="time-list">${slots}</div>
+    </div>
+    ${footerNav('web-back', true)}`;
+}
+
+function stepConfirmBody(isMobile){
+  const loc = selectedLocation();
+  const body = `
+    <div class="summary-device" style="border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; margin-bottom:20px;">
+      <div class="summary-device-thumb">${icon(DEVICES.find(d=>d.id===state.booking.device).icon, 22)}</div>
+      <div>
+        <div class="summary-device-name">${bookingTitle()}</div>
+        <div class="summary-device-sub">${ISSUE_NAMES[state.booking.issue]}</div>
+      </div>
+    </div>
+    <div class="summary-rows">
+      <div class="summary-row"><span class="summary-row-label">Issue</span><span class="summary-row-value">${ISSUES.find(i=>i.id===state.booking.issue).label}</span></div>
+      <div class="summary-row"><span class="summary-row-label">Location</span><span class="summary-row-value">${loc.id === 'current' ? ADDRESS_FULL : loc.label + ' — ' + loc.sub}</span></div>
+      <div class="summary-row"><span class="summary-row-label">Date &amp; Time</span><span class="summary-row-value">${whenLabel()}</span></div>${breakdownRows()}
+    </div>
+    <div class="summary-total">
+      <span class="summary-total-label">Total</span>
+      <span class="summary-total-value">${priceLabel()}</span>
+    </div>`;
+
+  if (isMobile) {
+    return `
+      <h2 class="screen-title">Review &amp; Confirm</h2>
+      <div class="screen-body">${body}</div>
+      <div class="m-footer">
+        <button class="btn btn-primary btn-block" data-action="confirm-booking">Confirm Booking</button>
+        <p style="text-align:center; font-size:11.5px; color:var(--text-tertiary); margin-top:12px;">You won't be charged until the repair is completed.</p>
+      </div>`;
+  }
+  return `
+    <h3>Review &amp; Confirm</h3>
+    <div class="booking-main-body">${body}</div>
+    <div class="booking-main-footer">
+      <button class="btn btn-secondary" data-action="web-back">${icon('arrowLeft',16)} Back</button>
+      <button class="btn btn-primary" data-action="confirm-booking">Confirm Booking</button>
+    </div>`;
+}
+
+function footerNav(backAction, showNext){
+  // backAction: 'web-back' (previous step) | 'go-home' (exit to homepage, used on step 1) | null
+  return `<div class="booking-main-footer">
+    ${backAction ? `<button class="btn btn-secondary" data-action="${backAction}">${icon('arrowLeft',16)} ${backAction === 'go-home' ? 'Home' : 'Back'}</button>` : `<span></span>`}
+    ${showNext ? `<button class="btn btn-primary" data-action="web-next">Next</button>` : ''}
+  </div>`;
+}
+
+function summarySidebar(){
+  const loc = selectedLocation();
+  return `
+  <div class="summary-card">
+    <h4>Booking Summary</h4>
+    <div class="summary-device">
+      <div class="summary-device-thumb">${icon(DEVICES.find(d=>d.id===state.booking.device).icon, 20)}</div>
+      <div>
+        <div class="summary-device-name">${bookingTitle()}</div>
+        <div class="summary-device-sub">${ISSUES.find(i=>i.id===state.booking.issue).label}</div>
+      </div>
+    </div>
+    <div class="summary-rows">
+      <div class="summary-row"><span class="summary-row-label">Location</span><span class="summary-row-value">${loc.id === 'current' ? 'Cairo, Egypt' : loc.label}</span></div>
+      <div class="summary-row"><span class="summary-row-label">Date &amp; Time</span><span class="summary-row-value">${whenLabel()}</span></div>${breakdownRows()}
+      <div class="summary-row"><span class="summary-row-label">Technician</span><span class="summary-row-value">Assigned after booking</span></div>
+      <div class="summary-row"><span class="summary-row-label">Estimated Time</span><span class="summary-row-value">30–45 min</span></div>
+    </div>
+    <div class="summary-total">
+      <span class="summary-total-label">Total</span>
+      <span class="summary-total-value">${priceLabel()}</span>
+    </div>
+    ${state.webStep < getWebStepIds().indexOf('confirm') + 1 ? `<button class="btn btn-dark btn-block btn-sm" data-action="web-jump-confirm">Skip to Review</button>` : `<div style="font-size:11px;color:var(--text-tertiary);text-align:center;">You won't be charged until the repair is completed.</div>`}
+  </div>`;
+}
+
+/* ================= WEB SUCCESS / TRACK ================= */
+function renderWebSuccess(){
+  return `
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" data-action="go-home">${logoMark()}
+      <div class="logo-text"><span class="logo-word">VELOX</span><span class="logo-tag">REPAIR. DELIVERED.</span></div>
+    </div>
+    <div class="nav-cta"><button class="btn btn-dark btn-sm" data-action="go-home">Home</button></div>
+  </div></nav>
+  <div class="web-result">
+    <div class="success-badge">${icon('checkCircle', 44)}</div>
+    <h1>You're all set! 🎉</h1>
+    <p>Your technician is on the way. You earned <b style="color:var(--accent)">${loyaltyPoints()} Velox Points</b>.</p>
+    <div class="time-pill">${icon('clock',16)} ${whenLabel()}</div>
+    ${techCard()}
+    <div class="result-actions">
+      <button class="btn btn-dark" data-action="go-home">Back Home</button>
+      <button class="btn btn-primary" data-action="go-track">Track Technician</button>
+    </div>
+  </div>`;
+}
+
+function techCard(){
+  return `<div class="tech-card">
+    <div class="tech-avatar">${icon('user', 26)}</div>
+    <div>
+      <div class="tech-name">${TECHNICIAN.name}</div>
+      <div class="tech-role">Certified Velox Technician</div>
+      <div class="tech-rating">${icon('star', 13)} ${TECHNICIAN.rating}</div>
+    </div>
+  </div>`;
+}
+
+function renderWebTrack(){
+  return `
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" data-action="go-home">${logoMark()}
+      <div class="logo-text"><span class="logo-word">VELOX</span><span class="logo-tag">REPAIR. DELIVERED.</span></div>
+    </div>
+    <div class="nav-cta"><button class="btn btn-dark btn-sm" data-action="go-home">Home</button></div>
+  </div></nav>
+  <div class="web-result">
+    <h1 style="text-align:left; margin-bottom:20px;">On The Way</h1>
+    ${techCard()}
+    <div class="track-map">
+      <div class="pin start"></div>
+      <div class="pin end"></div>
+    </div>
+    ${trackTimeline()}
+    <div class="result-actions">
+      <button class="btn btn-dark">${icon('call',16)} Call</button>
+      <button class="btn btn-primary">${icon('chat',16)} Chat</button>
+    </div>
+  </div>`;
+}
+
+function renderWebPartner(){
+  const weeks = [2200, 2650, 2400, 2750];
+  const gross = weeks.reduce((a, b) => a + b, 0), fee = Math.round(gross * 0.15), net = gross - fee, max = Math.max(...weeks);
+  return `
+  <nav class="nav"><div class="nav-inner">
+    <div class="logo" data-action="go-home">${logoMark()}
+      <div class="logo-text"><span class="logo-word">VELOX</span><span class="logo-tag">REPAIR. DELIVERED.</span></div>
+    </div>
+    <div class="nav-cta"><button class="btn btn-dark btn-sm" data-action="go-home">Home</button></div>
+  </div></nav>
+  <div class="dash">
+    <h1>Technician earnings</h1>
+    <p>Collect payments all week. Velox settles its 15% at the end of the month.</p>
+    <div class="dash-stats">
+      <div class="dash-stat"><small>Collected this month</small><b>EGP ${gross.toLocaleString()}</b></div>
+      <div class="dash-stat"><small>Velox share (15%)</small><b>EGP ${fee.toLocaleString()}</b></div>
+      <div class="dash-stat hl"><small>You keep</small><b>EGP ${net.toLocaleString()}</b></div>
+    </div>
+    <div class="dash-card">
+      <h4>Weekly collections</h4>
+      ${weeks.map((w, i) => `<div class="bar-row"><span>Week ${i + 1}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(w / max * 100)}%"></div></div><span>EGP ${w.toLocaleString()}</span></div>`).join('')}
+      <p class="dash-note">Sample data. Settlement is due on the last day of the month.</p>
+    </div>
+  </div>`;
+}
+
+function trackTimeline(){
+  const items = [
+    { title:'Booking Confirmed', time:'10:30 AM', state:'done' },
+    { title:'Technician Assigned', time:'10:35 AM', state:'done' },
+    { title:'On The Way', time:'10:45 AM', state:'active' },
+    { title:'Repair In Progress', time:'', state:'' },
+    { title:'Completed', time:'', state:'' },
+  ];
+  return `<div class="timeline">
+    ${items.map(it => `
+      <div class="tl-item ${it.state}">
+        <div class="tl-line"></div>
+        <div class="tl-dot">${it.state === 'done' ? icon('check', 11) : ''}</div>
+        <div class="tl-content">
+          <div class="tl-title">${it.title}</div>
+          ${it.time ? `<div class="tl-time">${it.time}</div>` : ''}
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ================= MOBILE PROTOTYPE ================= */
+function renderMobileShell(){
+  const step = state.mobileStep;
+  const ids = getMobileStepIds();
+  const successStep = ids.length + 1;
+  const trackStep = ids.length + 2;
+  const showTracker = step >= 1 && step <= successStep;
+  const showLiveLabel = step === trackStep;
+  return `
+  <div class="mobile-shell">
+    ${showTracker ? mobileTracker() : showLiveLabel ? `<div style="margin-bottom:28px; color:var(--text-tertiary); font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);"></span>Live Tracking</div>` : ''}
+    <div class="phone">
+      ${statusBar()}
+      <div class="phone-screen">
+        ${mobileScreenBody(step)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function mobileTracker(){
+  const labels = getMobileStepLabels();
+  return `<div class="mobile-tracker">
+    ${labels.map((label, i) => {
+      const stepNum = i + 1;
+      const cls = stepNum < state.mobileStep ? 'done' : stepNum === state.mobileStep ? 'active' : '';
+      const dotContent = stepNum < state.mobileStep ? icon('check', 12) : stepNum;
+      const line = i < labels.length - 1 ? `<div class="mt-connector"><div class="mt-line ${stepNum < state.mobileStep ? 'done' : ''}"></div></div>` : '';
+      return `<div class="mt-step ${cls}">
+        <div class="mt-dot">${dotContent}</div>
+        <span class="mt-label">${label}</span>
+      </div>${line}`;
+    }).join('')}
+  </div>`;
+}
+
+function backBtn(action){
+  // action: 'mobile-back' (previous step) | 'go-home' (exit to homepage, used on step 1)
+  return `<button class="back-btn" data-action="${action}" aria-label="${action === 'go-home' ? 'Exit to homepage' : 'Back'}">${icon('arrowLeft', 16)}</button>`;
+}
+
+// Steps where a live price is useful to show up top. Left off the
+// review/confirm step since that screen already shows the full total.
+const PRICE_PILL_STEPS = new Set(['device','brand','model','issue','details','location','time']);
+
+function mobileScreenBody(step){
+  if (step === 0) return auth.customer ? mobileLandingBody() : authScreen();
+  const ids = getMobileStepIds();
+  if (step >= 1 && step <= ids.length) {
+    const id = ids[step - 1];
+    const header = `<div class="screen-header">${backBtn('mobile-back')}${PRICE_PILL_STEPS.has(id) ? pricePill() : ''}</div>`;
+    switch(id){
+      case 'device': return header + stepDeviceBody(true);
+      case 'brand': return header + stepBrandBody(true);
+      case 'model': return header + stepModelBody(true);
+      case 'issue': return header + stepIssueBody(true);
+      case 'details': return header + stepDetailsBody(true);
+      case 'location': return header + stepLocationBody(true);
+      case 'time': return header + stepTimeBody(true);
+      case 'confirm': return header + stepConfirmBody(true);
+      default: return '';
+    }
+  }
+  if (step === ids.length + 1) return `<div class="screen-header">${backBtn('mobile-back')}</div>` + mobileSuccessScreen();
+  if (step === ids.length + 2) return `<div class="screen-header">${backBtn('mobile-back')}</div>` + mobileTrackScreen();
+  return '';
+}
+
+function mobileLandingBody(){
+  return `
+  <div class="m-landing">
+    <div class="m-landing-logo">${logoMark(36)}</div>
+    <div class="m-landing-illustration">${icon('wrench', 40)}</div>
+    <div class="tl-time" style="margin:-12px 0 14px;">Signed in as ${esc(auth.customer.name)}</div>
+    <h2>Expert repairs,<br><span class="accent-text">delivered</span> to you.</h2>
+    <p>We come to your location and fix your device on the spot. No shops, no waiting.</p>
+    <button class="btn btn-primary btn-block" data-action="mobile-start-booking">Book</button>
+    <button class="btn btn-dark btn-block" data-action="mobile-track">Track Existing Visit</button>
+    <button class="btn btn-secondary btn-block btn-sm" data-action="auth-logout">Log out</button>
+  </div>`;
+}
+
+function mobileSuccessScreen(){
+  return `
+  <div class="m-success">
+    <div class="m-success-icon">${icon('checkCircle', 36)}</div>
+    <h2>You're all set! 🎉</h2>
+    <p>Your technician is on the way. You earned <b style="color:var(--accent)">${loyaltyPoints()} Velox Points</b>.</p>
+    <div class="m-time-pill">${icon('clock',14)} ${whenLabel()}</div>
+    <div class="m-tech-card">
+      <div class="tech-avatar" style="width:44px;height:44px;">${icon('user', 22)}</div>
+      <div>
+        <div class="tech-name" style="font-size:13.5px;">${TECHNICIAN.name}</div>
+        <div class="tech-rating">${icon('star', 12)} ${TECHNICIAN.rating}</div>
+      </div>
+    </div>
+    <button class="btn btn-dark btn-block" data-action="mobile-track">Track Technician</button>
+  </div>`;
+}
+
+function mobileTrackScreen(){
+  return `
+  <div class="m-track-header">
+    <div class="tech-avatar" style="width:44px;height:44px;">${icon('user', 22)}</div>
+    <div>
+      <div class="tech-name" style="font-size:13.5px;">${TECHNICIAN.name} is on his way</div>
+      <div class="tl-time">to your location</div>
+    </div>
+  </div>
+  <h2 class="screen-title" style="margin-bottom:14px;">On The Way</h2>
+  <div class="m-track-map">
+    <div class="pin start" style="top:60%; left:20%;"></div>
+    <div class="pin end" style="top:25%; left:68%;"></div>
+  </div>
+  ${trackTimeline()}
+  <div class="m-actions-row">
+    <button class="btn btn-dark">${icon('call',15)} Call</button>
+    <button class="btn btn-primary">${icon('chat',15)} Chat</button>
+  </div>`;
+}
+
+/* ================= TECHNICIAN APP ================= */
+const STAGES = ['Accepted','On the way','Arrived','Repairing','Completed'];
+const STAGE_CTA = ['Accept job','Start driving',"I've arrived",'Start repair','Complete & collect cash'];
+const tech = { tab:'new', open:null, online:true, jobs:[
+  { id:'j1', device:'Apple iPhone 14 Pro', issue:'Screen Repair', area:'Maadi, Cairo', addr:'123 Al Maadi St., Maadi', dist:'2.1 km', when:'Today, 05:00 PM', urgent:false, price:550, stage:0, customer:'Mona Hassan', desc:'Cracked screen after a drop. Touch still works.' },
+  { id:'j2', device:'Samsung Galaxy A54', issue:'Battery Replacement', area:'Nasr City, Cairo', addr:'8 Abbas El Akkad St., Nasr City', dist:'4.8 km', when:'ASAP, within 60 min', urgent:true, price:430, stage:0, customer:'Omar Khaled', desc:'Dies at 30% and drains in about 2 hours.' },
+  { id:'j3', device:'Xiaomi Redmi Note 12', issue:'Charging Port Repair', area:'Heliopolis, Cairo', addr:'22 Baghdad St., Heliopolis', dist:'3.4 km', when:'Yesterday, 01:00 PM', urgent:false, price:310, stage:5, customer:'Sara Nabil', desc:'Charger only connects when wiggled.' },
+]};
+const esc = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const techFee = p => Math.round(p * 0.15);
+const jobById = id => tech.jobs.find(j => j.id === id);
+const tabOf = j => j.stage === 0 ? 'new' : j.stage < 5 ? 'active' : 'done';
+
+// A booking made in the customer flow shows up as a new request in the technician app.
+function addBookingAsJob(){
+  const loc = selectedLocation();
+  tech.jobs.unshift({ id:'b' + Date.now(), device:deviceDisplayName(), issue:ISSUE_NAMES[state.booking.issue],
+    area:loc.id === 'current' ? 'Maadi, Cairo' : loc.label, addr:loc.id === 'current' ? ADDRESS_FULL : loc.label,
+    dist:'1.6 km', when:whenLabel(), urgent:state.booking.urgent, price:calcTotalPrice(), stage:0,
+    customer:auth.customer ? auth.customer.name : 'Demo customer', desc:state.booking.description });
+  tech.tab = 'new';
+}
+
+function renderTechShell(){
+  const j = tech.open && jobById(tech.open);
+  return `<div class="mobile-shell">
+    <div style="margin-bottom:28px; color:var(--text-tertiary); font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; display:flex; align-items:center; gap:8px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);"></span>Technician App</div>
+    <div class="phone">${statusBar()}<div class="phone-screen">${auth.techStatus !== 'approved' ? techApplyScreen() : j ? techJobScreen(j) : techHome()}</div></div>
+  </div>`;
+}
+
+function techHome(){
+  const done = tech.jobs.filter(j => j.stage === 5);
+  const gross = 2750 + done.reduce((a, j) => a + j.price, 0), fee = techFee(gross);
+  const n = t => tech.jobs.filter(j => tabOf(j) === t).length;
+  const list = tech.jobs.filter(j => tabOf(j) === tech.tab);
+  const empty = { new:"No new requests.<br>Stay online and they'll show up here.", active:'No active jobs.<br>Accept a request to get started.', done:'No finished jobs yet.' }[tech.tab];
+  const body = tech.tab === 'new' && !tech.online
+    ? `<div class="t-empty">You're offline.<br>Go online to receive requests.</div>`
+    : list.length ? list.map(techJobCard).join('') : `<div class="t-empty">${empty}</div>`;
+  return `
+  <div class="th">
+    <div class="tech-avatar" style="width:44px;height:44px;">${icon('user', 22)}</div>
+    <div class="grow"><div class="tech-name" style="font-size:14px;">${esc(apply.f.name.trim() || TECHNICIAN.name)}</div><div class="tl-time">${tech.online ? 'Online' : 'Offline'}</div></div>
+    <button class="tg ${tech.online ? 'on' : ''}" data-action="tech-toggle" aria-pressed="${tech.online}" aria-label="Toggle availability"><i></i></button>
+  </div>
+  <div class="t-earn">
+    <div><small>Collected this week</small><b>EGP ${gross.toLocaleString()}</b></div>
+    <div><small>Velox 15%</small><b>EGP ${fee.toLocaleString()}</b></div>
+    <div class="k"><small>You keep</small><b>EGP ${(gross - fee).toLocaleString()}</b></div>
+  </div>
+  <div class="tab-row sm">
+    ${['new','active','done'].map(t => `<button class="tab-btn ${tech.tab === t ? 'active' : ''}" data-action="tech-tab" data-value="${t}">${{new:'New',active:'Active',done:'Done'}[t]} (${n(t)})</button>`).join('')}
+  </div>
+  ${body}`;
+}
+
+function techJobCard(j){
+  const foot = j.stage === 0
+    ? `<div class="tj-btns"><button class="btn btn-dark btn-sm" data-action="tech-decline" data-id="${j.id}">Decline</button><button class="btn btn-primary btn-sm" data-action="tech-accept" data-id="${j.id}">Accept</button></div>`
+    : `<span class="chip">${STAGES[j.stage - 1]}</span>`;
+  return `<div class="tj" data-action="tech-open" data-id="${j.id}" role="button" tabindex="0">
+    <div class="tj-top"><div><div class="row-title">${esc(j.device)}</div><div class="row-sub">${j.issue}</div></div>${j.urgent ? '<span class="badge">Hurry-up</span>' : ''}</div>
+    <div class="tj-meta"><span>${icon('pin', 13)} ${esc(j.area)} · ${j.dist}</span><span>${icon('clock', 13)} ${esc(j.when)}</span></div>
+    <div class="tj-foot"><span class="tj-pay">You earn EGP ${j.price - techFee(j.price)}</span>${foot}</div>
+  </div>`;
+}
+
+function techJobScreen(j){
+  const fee = techFee(j.price), s = j.stage;
+  const timeline = s === 0 ? '' : `<div class="timeline" style="margin:4px 0 18px;">${STAGES.map((t, i) => {
+    const st = s > i + 1 || s === 5 ? 'done' : s === i + 1 ? 'active' : '';
+    return `<div class="tl-item ${st}"><div class="tl-line"></div><div class="tl-dot">${st === 'done' ? icon('check', 11) : ''}</div><div class="tl-content"><div class="tl-title">${t}</div></div></div>`;
+  }).join('')}</div>`;
+  const cta = s < 5
+    ? `<button class="btn btn-primary btn-block" data-action="tech-advance">${STAGE_CTA[s]}</button>`
+    : `<div class="t-block" style="text-align:center;margin:0;"><div style="color:var(--accent);font-weight:800;font-size:14px;">Job completed</div><p style="margin-top:4px;">Cash collected: EGP ${j.price}. Velox's EGP ${fee} is settled at month end.</p></div>`;
+  return `
+  <div class="screen-header">${backBtn('tech-back')}<div class="tj-pay" style="margin-left:auto;">You earn EGP ${j.price - fee}</div></div>
+  <h2 class="screen-title" style="margin-bottom:4px;">${esc(j.device)}</h2>
+  <div class="row-sub" style="margin:0 0 16px;">${j.issue}${j.urgent ? ' · <b style="color:var(--accent)">Hurry-up</b>' : ''}</div>
+  <div class="t-block"><div class="t-cust">
+    <div class="tech-avatar" style="width:38px;height:38px;">${icon('user', 18)}</div>
+    <div class="grow"><div class="tech-name" style="font-size:13.5px;">${esc(j.customer)}</div><div class="tl-time">${s === 0 ? esc(j.area) : esc(j.addr)}</div></div>
+    ${s > 0 ? `<button class="btn btn-dark t-circ">${icon('call', 15)}</button><button class="btn btn-dark t-circ">${icon('chat', 15)}</button>` : ''}
+  </div>${s === 0 ? '<p style="margin-top:10px;font-size:12px;color:var(--text-tertiary);">Exact address and contact unlock after you accept.</p>' : ''}</div>
+  <div class="t-block"><span class="field-label">Visit time</span><p>${esc(j.when)}</p></div>
+  <div class="t-block"><span class="field-label">Customer's note</span><p>${esc(j.desc)}</p></div>
+  ${timeline}
+  <div class="t-block"><div class="summary-rows" style="margin:0;">
+    <div class="summary-row"><span class="summary-row-label">Customer pays</span><span class="summary-row-value">EGP ${j.price}</span></div>
+    <div class="summary-row"><span class="summary-row-label">Velox 15%</span><span class="summary-row-value">− EGP ${fee}</span></div>
+    <div class="summary-row"><span class="summary-row-label">You keep</span><span class="summary-row-value" style="color:var(--accent)">EGP ${j.price - fee}</span></div>
+  </div></div>
+  <div class="m-footer">${cta}</div>`;
+}
+
+/* ================= SIGN UP / APPLY ================= */
+const auth = { customer:null, accounts:[{ name:'Demo Customer', phone:'01012345678' }], view:'welcome', techStatus:'none', err:'' };
+const sform = { name:'', phone:'' };
+const apply = { step:0, err:'', f:{ name:'', phone:'', area:'', addr:'', ecName:'', ecPhone:'', exp:'1–3 years', skills:[], brands:[], tools:'Yes', ride:'Motorbike', docs:{}, payout:'Vodafone Cash', acct:'', agree:false } };
+const DOCS = [
+  { id:'photo', label:'Personal photo', sub:'Clear, face visible', req:1, icon:'user' },
+  { id:'idf', label:'National ID, front', sub:'All four corners visible', req:1, icon:'camera' },
+  { id:'idb', label:'National ID, back', sub:'All four corners visible', req:1, icon:'camera' },
+  { id:'birth', label:'Birth certificate', sub:'Original copy', req:1, icon:'shieldCheck' },
+  { id:'crim', label:'Criminal record certificate', sub:'Issued in the last 3 months', req:1, icon:'shieldCheck' },
+  { id:'mil', label:'Military service status', sub:'Men only', req:0, icon:'award' },
+  { id:'cert', label:'CV or training certificate', sub:'Optional, helps you get approved faster', req:0, icon:'award' },
+];
+const APPLY_SKILLS = ['Screens','Batteries','Charging ports','Cameras','Water damage','Micro-soldering'];
+const APPLY_BRANDS = ['Apple','Samsung','Xiaomi','Huawei','Oppo','Infinix'];
+const PHONE_RE = /^01[0125]\d{8}$/;
+
+function applyError(step){
+  const f = apply.f;
+  if (step === 1) {
+    if (f.name.trim().length < 2 || !f.area.trim() || !f.addr.trim()) return 'Fill in your name, area and home address.';
+    if (!PHONE_RE.test(f.phone.trim())) return 'Enter a valid Egyptian mobile number, 11 digits (010XXXXXXXX).';
+    if (f.ecPhone.trim() && !PHONE_RE.test(f.ecPhone.trim())) return 'Emergency contact number must be 11 digits.';
+  }
+  if (step === 2 && !f.skills.length) return 'Pick at least one repair skill.';
+  if (step === 3 && DOCS.some(d => d.req && !f.docs[d.id])) return 'Upload all required documents.';
+  if (step === 4) {
+    if (f.acct.trim().length < 6) return 'Enter your wallet or account number.';
+    if (!f.agree) return 'Accept the terms to submit.';
+  }
+  return '';
+}
+const fld = (label, scope, key, val, ph, type='text') => `<label class="field-label">${label}</label><input class="fld" type="${type}" data-field="${scope}.${key}" placeholder="${ph}" value="${esc(val)}" ${type === 'tel' ? 'inputmode="tel"' : ''}>`;
+const chips = (key, opts, multi) => `<div class="chips">${opts.map(o => { const on = multi ? apply.f[key].includes(o) : apply.f[key] === o; return `<button class="tab-btn ${on ? 'active' : ''}" data-action="${multi ? 'apply-toggle' : 'apply-set'}" data-key="${key}" data-value="${o}">${o}</button>`; }).join('')}</div>`;
+const errLine = m => m ? `<div class="err" role="alert">${m}</div>` : '';
+
+function authScreen(){
+  if (auth.view === 'login') return `<div class="screen-header">${backBtn('auth-back')}</div>
+    <h2 class="screen-title" style="margin-bottom:18px;">Log in</h2>
+    <div class="screen-body">${signupBody()}</div>
+    <div class="m-footer"><button class="btn btn-primary btn-block" data-action="login-submit">Log in</button></div>`;
+  if (auth.view === 'signup') return `<div class="screen-header">${backBtn('auth-back')}</div>
+    <h2 class="screen-title" style="margin-bottom:18px;">Create your account</h2>
+    <div class="screen-body">${signupBody()}</div>
+    <div class="m-footer"><button class="btn btn-primary btn-block" data-action="signup-submit">Continue</button><button class="btn btn-secondary btn-block btn-sm" data-action="auth-login" style="margin-top:10px;">I already have an account</button></div>`;
+  return `<div class="m-landing">
+    <div class="m-landing-logo">${logoMark(36)}</div>
+    <h2>Welcome to <span class="accent-text">Velox</span></h2>
+    <p>Choose how you want to use the app.</p>
+    <div class="row-card" data-action="auth-customer" role="button" tabindex="0" style="width:100%;text-align:left;margin-bottom:10px;"><div class="row-icon">${icon('phone', 18)}</div><div class="row-text"><div class="row-title">I need a repair</div><div class="row-sub">Sign up with your name and phone</div></div><span class="row-chevron">${icon('chevronRight', 16)}</span></div>
+    <div class="row-card" data-action="auth-go-tech" role="button" tabindex="0" style="width:100%;text-align:left;"><div class="row-icon">${icon('wrench', 18)}</div><div class="row-text"><div class="row-title">I'm a technician</div><div class="row-sub">Apply to join the Velox team</div></div><span class="row-chevron">${icon('chevronRight', 16)}</span></div>
+    <button class="btn btn-secondary btn-block btn-sm" data-action="auth-login" style="margin-top:18px;">I already have an account</button>
+  </div>`;
+}
+function signupBody(){
+  if (auth.view === 'login') return `${fld('Mobile number', 'sform', 'phone', sform.phone, '010XXXXXXXX', 'tel')}${errLine(auth.err)}`;
+  return `${fld('Full name', 'sform', 'name', sform.name, 'Your name')}${fld('Mobile number', 'sform', 'phone', sform.phone, '010XXXXXXXX', 'tel')}${errLine(auth.err)}
+  <p style="font-size:12px;color:var(--text-tertiary);line-height:1.5;">That's all we need. Your number is only used to reach you about your visit.</p>`;
+}
+function renderWebSignup(){
+  return `<nav class="nav"><div class="nav-inner">
+    <div class="logo" data-action="go-home">${logoMark()}<div class="logo-text"><span class="logo-word">VELOX</span><span class="logo-tag">REPAIR. DELIVERED.</span></div></div>
+    <div class="nav-cta"><button class="btn btn-dark btn-sm" data-action="go-home">Home</button></div>
+  </div></nav>
+  <div class="web-result" style="text-align:left;max-width:440px;">
+    <h1 style="margin-bottom:8px;">${auth.view === 'login' ? 'Log in' : 'Create your account'}</h1>
+    <p style="margin-bottom:24px;">${auth.view === 'login' ? 'Enter the number you signed up with.' : 'Two details and you can book.'}</p>
+    ${signupBody()}
+    <button class="btn btn-primary btn-block" data-action="${auth.view === 'login' ? 'login-submit' : 'signup-submit'}" style="margin-top:8px;">${auth.view === 'login' ? 'Log in' : 'Continue to booking'}</button>
+    <button class="btn btn-dark btn-block" data-action="${auth.view === 'login' ? 'auth-customer' : 'auth-login'}" style="margin-top:12px;">${auth.view === 'login' ? 'Create a new account' : 'I already have an account'}</button>
+    <button class="btn btn-secondary btn-block" data-action="auth-go-tech" style="margin-top:12px;">I'm a technician, let me apply</button>
+  </div>`;
+}
+
+function techApplyScreen(){
+  const f = apply.f, st = apply.step;
+  if (auth.techStatus === 'review') return `<div class="m-success">
+    <div class="m-success-icon">${icon('checkCircle', 36)}</div>
+    <h2>Application received</h2><p>We usually reply within 48 hours.</p>
+    <div class="timeline" style="width:100%;margin-bottom:22px;">${[['Application submitted','done'],['Documents check','active'],['Phone interview',''],['Approved','']].map(([t, c]) => `<div class="tl-item ${c}"><div class="tl-line"></div><div class="tl-dot">${c === 'done' ? icon('check', 11) : ''}</div><div class="tl-content"><div class="tl-title">${t}</div></div></div>`).join('')}</div>
+    <button class="btn btn-primary btn-block" data-action="tech-approve">Simulate approval (demo)</button>
+  </div>`;
+  if (st === 0) return `<div class="m-landing">
+    <div class="m-landing-logo">${logoMark(36)}</div>
+    <div class="m-landing-illustration">${icon('wrench', 40)}</div>
+    <h2>Work with <span class="accent-text">Velox</span></h2>
+    <p>Get repair requests near you, keep 85% of every job and settle once a month.</p>
+    <button class="btn btn-primary btn-block" data-action="apply-start">Start application</button>
+    <button class="btn btn-dark btn-block" data-action="tech-demo-login">Sign in as demo technician</button>
+  </div>`;
+  const titles = ['', 'About you', 'Your experience', 'Documents', 'Payout and review'];
+  let body = '';
+  if (st === 1) body = `${fld('Full name (as on your ID)', 'apply', 'name', f.name, 'Full name')}${fld('Mobile number', 'apply', 'phone', f.phone, '010XXXXXXXX', 'tel')}${fld('Area you live in', 'apply', 'area', f.area, 'e.g. Maadi, Cairo')}${fld('Home address', 'apply', 'addr', f.addr, 'Street, building, floor')}${fld('Emergency contact name (optional)', 'apply', 'ecName', f.ecName, 'Name')}${fld('Emergency contact number (optional)', 'apply', 'ecPhone', f.ecPhone, '010XXXXXXXX', 'tel')}`;
+  if (st === 2) body = `<span class="field-label">Years of experience</span>${chips('exp', ['Under 1 year','1–3 years','3–5 years','5+ years'])}<span class="field-label">What do you repair?</span>${chips('skills', APPLY_SKILLS, true)}<span class="field-label">Brands you know best</span>${chips('brands', APPLY_BRANDS, true)}<span class="field-label">Do you own repair tools?</span>${chips('tools', ['Yes','Not yet'])}<span class="field-label">How do you get around?</span>${chips('ride', ['Motorbike','Car','Public transport'])}`;
+  if (st === 3) body = `<p class="screen-sub" style="margin:0 0 14px;">Prototype only. Nothing is really uploaded.</p><div class="m-row-list">${DOCS.map(d => `<div class="row-card ${f.docs[d.id] ? 'selected' : ''}" data-action="apply-doc" data-id="${d.id}" role="button" tabindex="0"><div class="row-icon">${icon(d.icon, 18)}</div><div class="row-text"><div class="row-title">${d.label}${d.req ? '' : ' (optional)'}</div><div class="row-sub">${d.sub}</div></div>${f.docs[d.id] ? `<span class="doc-state">${icon('check', 13)} Added</span>` : '<span class="doc-state todo">Upload</span>'}</div>`).join('')}</div>`;
+  if (st === 4) body = `<span class="field-label">How should we pay you?</span>${chips('payout', ['Vodafone Cash','InstaPay','Bank account'])}${fld('Wallet or account number', 'apply', 'acct', f.acct, 'Number')}
+    <div class="row-card ${f.agree ? 'selected' : ''}" data-action="apply-agree" role="button" tabindex="0" style="margin-bottom:14px;"><div class="row-text"><div class="row-title" style="font-size:13px;">I agree to the terms</div><div class="row-sub">I collect payments from customers and Velox's 15% is settled at the end of each month.</div></div><span class="row-check">${icon('check', 16)}</span></div>`;
+  return `<div class="screen-header">${backBtn('apply-back')}<div class="pbar"><div><i style="width:${st * 25}%"></i></div>Step ${st} of 4</div></div>
+    <h2 class="screen-title" style="margin-bottom:18px;">${titles[st]}</h2>
+    <div class="screen-body">${body}${errLine(apply.err)}</div>
+    <div class="m-footer"><button class="btn btn-primary btn-block" data-action="apply-next">${st === 4 ? 'Submit application' : 'Next'}</button></div>`;
+}
+
+/* ================= EVENT HANDLING ================= */
+function goWebStep(delta){
+  const ids = getWebStepIds();
+  const next = state.webStep + delta;
+  if (next < 1 || next > ids.length) return;
+  state.webStep = next;
+  render();
+}
+
+function handleAction(action, target){
+  switch(action){
+    case 'go-home':
+      state.mode = 'web'; state.web.view = 'home'; scrollToTop(); break;
+    case 'start-booking':
+      state.mode = 'web'; state.web.view = auth.customer ? 'booking' : 'signup'; state.webStep = 1; scrollToTop(); break;
+    case 'go-track':
+      state.mode = 'web'; state.web.view = 'track'; scrollToTop(); break;
+    case 'web-next':
+      goWebStep(1); return;
+    case 'web-back':
+      goWebStep(-1); return;
+    case 'web-jump-confirm':
+      state.webStep = getWebStepIds().indexOf('confirm') + 1; break;
+    case 'confirm-booking':
+      addBookingAsJob();
+      if (state.mode === 'web') { state.web.view = 'success'; scrollToTop(); }
+      else { state.mobileStep = getMobileStepIds().length + 1; }
+      break;
+    case 'select-device':
+      state.booking.device = target.dataset.value;
+      // Switching device categories resets the brand/model pick to a sensible default.
+      state.booking.brand = defaultBrandForDevice(state.booking.device);
+      state.booking.model = defaultModelForBrand(state.booking.brand);
+      state.booking.modelSearch = '';
+      break;
+    case 'select-brand':
+      state.booking.brand = target.dataset.value;
+      state.booking.model = defaultModelForBrand(state.booking.brand);
+      state.booking.modelSearch = '';
+      break;
+    case 'select-model':
+      state.booking.model = target.dataset.value; break;
+    case 'select-issue':
+      state.booking.issue = target.dataset.value; break;
+    case 'select-location':
+      state.booking.location = target.dataset.value; break;
+    case 'select-time':
+      state.booking.time = target.dataset.value; state.booking.urgent = false; break;
+    case 'select-time-tab':
+      state.booking.timeTab = target.dataset.value; state.booking.urgent = false; break;
+    case 'toggle-urgent':
+      state.booking.urgent = !state.booking.urgent; break;
+    case 'go-partner':
+      state.mode = 'web'; state.web.view = 'partner'; scrollToTop(); break;
+    case 'mobile-start-booking':
+      state.mobileStep = 1; break;
+    case 'mobile-next':
+      state.mobileStep = Math.min(getMobileStepIds().length, state.mobileStep + 1);
+      // the last step's ("Confirm") button is Confirm Booking, handled by confirm-booking
+      break;
+    case 'mobile-back':
+      state.mobileStep = Math.max(0, state.mobileStep - 1); break;
+    case 'mobile-track':
+      state.mobileStep = getMobileStepIds().length + 2; break;
+    case 'tech-tab': tech.tab = target.dataset.value; break;
+    case 'tech-toggle': tech.online = !tech.online; break;
+    case 'tech-open': tech.open = target.dataset.id; break;
+    case 'tech-back': { const j = jobById(tech.open); if (j) tech.tab = tabOf(j); tech.open = null; break; }
+    case 'tech-decline': tech.jobs = tech.jobs.filter(j => j.id !== target.dataset.id); break;
+    case 'tech-accept': { const j = jobById(target.dataset.id); j.stage = 1; tech.tab = 'active'; break; }
+    case 'tech-advance': { const j = jobById(tech.open); j.stage = Math.min(5, j.stage + 1); break; }
+    case 'auth-customer': auth.view = 'signup'; auth.err = ''; break;
+    case 'auth-back': auth.view = 'welcome'; auth.err = ''; break;
+    case 'auth-go-tech': state.mode = 'tech'; tech.open = null; scrollToTop(); break;
+    case 'signup-submit':
+      if (sform.name.trim().length < 2) { auth.err = 'Enter your name.'; break; }
+      if (!/^01[0125]\d{8}$/.test(sform.phone.trim())) { auth.err = 'Enter a valid Egyptian mobile number, 11 digits (010XXXXXXXX).'; break; }
+      { const ph = sform.phone.trim(); let acc = auth.accounts.find(a => a.phone === ph);
+        if (!acc) { acc = { name: sform.name.trim(), phone: ph }; auth.accounts.push(acc); }
+        auth.customer = acc; auth.err = ''; }
+      if (state.mode === 'web') { state.web.view = 'booking'; state.webStep = 1; scrollToTop(); }
+      break;
+    case 'auth-login': auth.view = 'login'; auth.err = ''; break;
+    case 'auth-logout': auth.customer = null; auth.view = 'welcome'; sform.name = ''; sform.phone = ''; break;
+    case 'login-submit': {
+      const ph = sform.phone.trim(), acc = auth.accounts.find(a => a.phone === ph);
+      if (!PHONE_RE.test(ph)) { auth.err = 'Enter a valid Egyptian mobile number, 11 digits (010XXXXXXXX).'; break; }
+      if (!acc) { auth.err = 'No account with this number. Sign up first.'; break; }
+      auth.customer = acc; auth.err = '';
+      if (state.mode === 'web') { state.web.view = 'booking'; state.webStep = 1; scrollToTop(); }
+      break; }
+    case 'apply-start': apply.step = 1; apply.err = ''; break;
+    case 'apply-back': apply.step = Math.max(0, apply.step - 1); apply.err = ''; break;
+    case 'apply-next': {
+      const e = applyError(apply.step); apply.err = e;
+      if (!e) { if (apply.step === 4) auth.techStatus = 'review'; else apply.step++; }
+      break; }
+    case 'apply-set': apply.f[target.dataset.key] = target.dataset.value; break;
+    case 'apply-toggle': { const a = apply.f[target.dataset.key], v = target.dataset.value; apply.f[target.dataset.key] = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; break; }
+    case 'apply-doc': apply.f.docs[target.dataset.id] = !apply.f.docs[target.dataset.id]; break;
+    case 'apply-agree': apply.f.agree = !apply.f.agree; break;
+    case 'tech-approve': case 'tech-demo-login': auth.techStatus = 'approved'; tech.open = null; break;
+    case 'noop-photo':
+    case 'noop-address':
+      return; // visual-only in this prototype
+    default:
+      return;
+  }
+  render();
+}
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if (!el) {
+    // nav smooth-scroll links without data-action fall through natively
+    return;
+  }
+  const action = el.dataset.action;
+  // Anchor links inside nav (Services/How It Works/Why Velox) still want default scroll behavior
+  handleAction(action, el);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    const el = e.target.closest('[role="button"][data-action]');
+    if (el) { e.preventDefault(); handleAction(el.dataset.action, el); }
+  }
+});
+
+document.getElementById('mh-web').addEventListener('click', () => {
+  state.mode = 'web';
+  scrollToTop();
+  render();
+});
+document.getElementById('mh-tech').addEventListener('click', () => {
+  state.mode = 'tech'; tech.open = null;
+  scrollToTop();
+  render();
+});
+document.getElementById('mh-mobile').addEventListener('click', () => {
+  state.mode = 'mobile';
+  state.mobileStep = 0;
+  scrollToTop();
+  render();
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.dataset.field) {
+    const [sc, k] = e.target.dataset.field.split('.');
+    ({ apply: apply.f, sform })[sc][k] = e.target.value;
+  } else if (e.target.matches('[data-action="update-description"]')) {
+    state.booking.description = e.target.value;
+  } else if (e.target.matches('[data-action="update-model-search"]')) {
+    state.booking.modelSearch = e.target.value;
+    const caret = e.target.selectionStart;
+    render();
+    const input = document.querySelector('[data-action="update-model-search"]');
+    if (input) {
+      input.focus();
+      try { input.setSelectionRange(caret, caret); } catch (err) {}
+    }
+  }
+});
+
+/* ---------------- Init ---------------- */
+render();
+
+</script>
+</body>
+</html>
